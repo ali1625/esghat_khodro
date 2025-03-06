@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+{% block title %}لیست صاحبان{% endblock %}
+{% block content %}
+    <h2 class="mb-4">لیست صاحبان خودرو</h2>
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="جستجو در صاحبان..." value="{{ query }}">
+            <button type="submit" class="btn btn-primary">جستجو</button>
+        </div>
+        <a href="{% url 'export_owners' %}?q={{ query }}" class="btn btn-info mt-3">خروجی اکسل</a>
+    </form>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>نام</th>
+                        <th>نام خانوادگی</th>
+                        <th>کد ملی</th>
+                        <th>شماره گواهینامه</th>
+                        <th>خودرو</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for owner in owners %}
+                        <tr>
+                            <td>{{ owner.first_name }}</td>
+                            <td>{{ owner.last_name }}</td>
+                            <td>{{ owner.national_code }}</td>
+                            <td>{{ owner.license_number }}</td>
+                            <td>{{ owner.car.model_fa }}</td>
+                            <td>
+                                <a href="{% url 'edit_owner' owner.id %}" class="btn btn-warning btn-sm">ویرایش</a>
+                                <a href="{% url 'delete_owner' owner.id %}" class="btn btn-danger btn-sm" onclick="return confirm('مطمئنی می‌خوای حذف کنی؟');">حذف</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">صاحبی یافت نشد</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <a href="{% url 'add_owner' %}" class="btn btn-success mt-3">اضافه کردن صاحب جدید</a>
+{% endblock %}

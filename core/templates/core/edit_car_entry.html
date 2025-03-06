@@ -1,0 +1,126 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}ویرایش خودرو{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card form-card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">ویرایش خودرو: {{ car.acceptance_number }}</h2>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <form method="post" class="needs-validation" novalidate id="car-entry-form">
+                    {% csrf_token %}
+                    <!-- شماره پلاک خودرو -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">شماره انتظامی</label>
+                            <div class="iranian-license-plate d-flex align-items-center">
+                                <div class="flag me-2"></div>
+                                <div class="digits1-container me-2 position-relative">
+                                    <input type="text" name="digits1" class="form-control digits1 no-spinner" maxlength="2" pattern="\d{2}" placeholder="12" value="{{ form.initial.digits1|default:'' }}" required>
+                                    <span class="iran-label position-absolute">ایران</span>
+                                </div>
+                                <span class="separator mx-1">-</span>
+                                <input type="text" name="digits2" class="form-control digits2 no-spinner me-2" maxlength="3" pattern="\d{3}" placeholder="123" value="{{ form.initial.digits2|default:'' }}" required>
+                                <span class="separator mx-1">-</span>
+                                {{ form.persian_letter }}
+                                <span class="separator mx-1">-</span>
+                                <input type="text" name="digits3" class="form-control digits3 no-spinner" maxlength="2" pattern="\d{2}" placeholder="45" value="{{ form.initial.digits3|default:'' }}" required>
+                                <input type="hidden" name="license_plate" class="license-plate-hidden" value="{{ form.initial.license_plate|default:'' }}">
+                            </div>
+                        </div>
+                        <!-- شماره پلاک راننده -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">شماره پلاک راننده/آورنده</label>
+                            <div class="iranian-license-plate d-flex align-items-center">
+                                <div class="flag me-2"></div>
+                                <div class="digits1-container me-2 position-relative">
+                                    <input type="text" name="driver_digits1" class="form-control digits1 no-spinner" maxlength="2" pattern="\d{2}" placeholder="12" value="{{ form.initial.driver_digits1|default:'' }}" required>
+                                    <span class="iran-label position-absolute">ایران</span>
+                                </div>
+                                <span class="separator mx-1">-</span>
+                                <input type="text" name="driver_digits2" class="form-control digits2 no-spinner me-2" maxlength="3" pattern="\d{3}" placeholder="123" value="{{ form.initial.driver_digits2|default:'' }}" required>
+                                <span class="separator mx-1">-</span>
+                                {{ form.driver_persian_letter }}
+                                <span class="separator mx-1">-</span>
+                                <input type="text" name="driver_digits3" class="form-control digits3 no-spinner" maxlength="2" pattern="\d{2}" placeholder="45" value="{{ form.initial.driver_digits3|default:'' }}" required>
+                                <input type="hidden" name="driver_license_plate" class="driver-license-plate-hidden" value="{{ form.initial.driver_license_plate|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- بقیه فیلدها -->
+                    <div class="row g-3">
+                        {% for field in form %}
+                            {% if field.name != 'license_plate' and field.name != 'driver_license_plate' and field.name != 'persian_letter' and field.name != 'driver_persian_letter' %}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-submit">ذخیره تغییرات</button>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary">بازگشت</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('.persian-date').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                initialValue: false,
+                autoClose: true,
+                calendar: {
+                    persian: {
+                        locale: 'fa',
+                        showHint: true
+                    }
+                }
+            });
+
+            $('#car-entry-form').on('submit', function(e) {
+                var digits1 = $('input[name="digits1"]').val();
+                var digits2 = $('input[name="digits2"]').val();
+                var persian_letter = $('select[name="persian_letter"]').val();
+                var digits3 = $('input[name="digits3"]').val();
+                var license_plate = digits1 + ' (ایران) - ' + digits2 + ' - ' + persian_letter + ' - ' + digits3;
+                $('.license-plate-hidden').val(license_plate);
+                console.log('Hidden input value (car): ', license_plate);
+
+                var driver_digits1 = $('input[name="driver_digits1"]').val();
+                var driver_digits2 = $('input[name="driver_digits2"]').val();
+                var driver_persian_letter = $('select[name="driver_persian_letter"]').val();
+                var driver_digits3 = $('input[name="driver_digits3"]').val();
+                var driver_license_plate = driver_digits1 + ' (ایران) - ' + driver_digits2 + ' - ' + driver_persian_letter + ' - ' + driver_digits3;
+                $('.driver-license-plate-hidden').val(driver_license_plate);
+                console.log('Hidden input value (driver): ', driver_license_plate);
+            });
+
+            // اعتبارسنجی فرم
+            (function() {
+                'use strict';
+                var forms = document.querySelectorAll('.needs-validation');
+                Array.prototype.slice.call(forms).forEach(function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            })();
+        });
+    </script>
+{% endblock %}

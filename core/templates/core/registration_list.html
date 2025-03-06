@@ -1,0 +1,131 @@
+{% extends 'core/base.html' %}
+{% block title %}لیست ثبت{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card form-card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">لیست ثبت</h2>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <form method="get" class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">شماره پذیرش</label>
+                            <input type="text" name="acceptance_number" class="form-control" value="{{ acceptance_number }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">شماره پلاک</label>
+                            <input type="text" name="license_plate" class="form-control" value="{{ license_plate }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">شماره پارکینگ</label>
+                            <input type="text" name="parking_number" class="form-control" value="{{ parking_number }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">از تاریخ</label>
+                            <input type="text" name="start_date" class="form-control persian-date" value="{{ start_date }}" placeholder="مثال: 1403/12/15">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">تا تاریخ</label>
+                            <input type="text" name="end_date" class="form-control persian-date" value="{{ end_date }}" placeholder="مثال: 1403/12/15">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">وضعیت قطعات</label>
+                            <select name="has_parts" class="form-control">
+                                <option value="" {% if not has_parts %}selected{% endif %}>همه</option>
+                                <option value="yes" {% if has_parts == 'yes' %}selected{% endif %}>ثبت شده</option>
+                                <option value="no" {% if has_parts == 'no' %}selected{% endif %}>ثبت نشده</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">وضعیت هزینه‌ها</label>
+                            <select name="has_costs" class="form-control">
+                                <option value="" {% if not has_costs %}selected{% endif %}>همه</option>
+                                <option value="yes" {% if has_costs == 'yes' %}selected{% endif %}>ثبت شده</option>
+                                <option value="no" {% if has_costs == 'no' %}selected{% endif %}>ثبت نشده</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <button type="submit" class="btn btn-primary">جستجو</button>
+                        <a href="?export=excel" class="btn btn-success ms-2">خروجی اکسل</a>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>شماره پذیرش</th>
+                                <th>نوع خودرو</th>
+                                <th>نام مالک</th>
+                                <th>مسئول پذیرش</th>
+                                <th>تاریخ پذیرش</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for car in cars %}
+                                <tr>
+                                    <td>{{ car.acceptance_number }}</td>
+                                    <td>{{ car.car_type }}</td>
+                                    <td>{{ car.owner_name }}</td>
+                                    <td>{{ car.accepted_by }}</td>
+                                    <td>{{ car.accepted_at }}</td>
+                                    <td>
+                                        <a href="{% url 'edit_car_entry' car.acceptance_number %}" class="btn btn-warning btn-sm" title="ویرایش ورود">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        {% if car.parts %}
+                                            <a href="{% url 'edit_car_parts' car.acceptance_number %}" class="btn btn-warning btn-sm" title="ویرایش قطعات">
+                                                <i class="bi bi-gear"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'add_car_parts_step2' car.acceptance_number %}" class="btn btn-primary btn-sm" title="ثبت قطعات">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </a>
+                                        {% endif %}
+                                        {% if car.costs %}
+                                            <a href="{% url 'edit_car_costs' car.acceptance_number %}" class="btn btn-warning btn-sm" title="ویرایش هزینه‌ها">
+                                                <i class="bi bi-currency-dollar"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'add_car_costs_step3' car.acceptance_number %}" class="btn btn-primary btn-sm" title="ثبت هزینه‌ها">
+                                                <i class="bi bi-currency-dollar"></i>
+                                            </a>
+                                        {% endif %}    
+                                            <a href="{% url 'car_details' car.acceptance_number %}" class="btn btn-success btn-sm" title="جزئیات">
+                                                <i class="bi bi-list-ul"></i> 
+                                            </a>
+                                      
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">داده‌ای یافت نشد</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('.persian-date').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                initialValue: false,
+                autoClose: true,
+                calendar: {
+                    persian: {
+                        locale: 'fa',
+                        showHint: true
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% block title %}ثبت کاربر جدید{% endblock %}
+{% block content %}
+    <h2 class="mb-4">ثبت کاربر جدید (فقط ادمین)</h2>
+    <form method="post" class="card p-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">نام کاربری</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="text-danger">{{ form.username.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">نام</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <div class="text-danger">{{ form.first_name.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">نام خانوادگی</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <div class="text-danger">{{ form.last_name.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">رمز عبور</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <div class="text-danger">{{ form.password1.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">تکرار رمز عبور</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div class="text-danger">{{ form.password2.errors }}</div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">ثبت کاربر</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">بازگشت</a>
+    </form>
+{% endblock %}

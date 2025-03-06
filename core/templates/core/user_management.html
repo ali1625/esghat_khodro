@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+{% block title %}مدیریت کاربران{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card form-card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">مدیریت کاربران</h2>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>نام کاربری</th>
+                                <th>نام</th>
+                                <th>نام خانوادگی</th>
+                                <th>وضعیت</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                                <tr>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.userprofile.first_name|default:"-" }}</td>
+                                    <td>{{ user.userprofile.last_name|default:"-" }}</td>
+                                    <td>{{ user.is_active|yesno:"فعال,غیرفعال" }}</td>
+                                    <td>
+                                        <form method="post" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                                            <button type="submit" name="action" value="toggle_active" class="btn btn-{% if user.is_active %}danger{% else %}success{% endif %} btn-sm">
+                                                {% if user.is_active %}غیرفعال{% else %}فعال{% endif %}
+                                            </button>
+                                            <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm" onclick="return confirm('آیا مطمئن هستید که می‌خواهید این کاربر را حذف کنید؟');">حذف</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">کاربری یافت نشد</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

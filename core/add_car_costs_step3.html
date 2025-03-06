@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+{% block title %}ثبت هزینه‌ها - مرحله سوم{% endblock %}
+{% block content %}
+    <h2 class="mb-4">ثبت هزینه‌ها</h2>
+    <form method="post" enctype="multipart/form-data" class="card p-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">انتخاب خودرو</label>
+            <select name="acceptance_number" class="form-control" required>
+                <option value="">-- انتخاب کنید --</option>
+                {% for car in cars %}
+                    <option value="{{ car.acceptance_number }}">{{ car.acceptance_number }} - {{ car.car_type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="row">
+            {% for field in form %}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">بازگشت</a>
+    </form>
+{% endblock %}

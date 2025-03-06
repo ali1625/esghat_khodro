@@ -1,0 +1,50 @@
+{% extends 'core/base.html' %}
+{% block title %}لیست خودروها{% endblock %}
+{% block content %}
+    <h2 class="mb-4">لیست خودروها</h2>
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="جستجو در خودروها..." value="{{ query }}">
+            <button type="submit" class="btn btn-primary">جستجو</button>
+        </div>
+        <a href="{% url 'export_cars' %}?q={{ query }}" class="btn btn-info mt-3">خروجی اکسل</a>
+    </form>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>مدل (فارسی)</th>
+                        <th>مدل (انگلیسی)</th>
+                        <th>رنگ</th>
+                        <th>سال ساخت</th>
+                        <th>شماره موتور</th>
+                        <th>شماره بدنه</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for car in cars %}
+                        <tr>
+                            <td>{{ car.model_fa }}</td>
+                            <td>{{ car.model_en }}</td>
+                            <td>{{ car.color }}</td>
+                            <td>{{ car.year }}</td>
+                            <td>{{ car.engine_number }}</td>
+                            <td>{{ car.chassis_number }}</td>
+                            <td>
+                                <a href="{% url 'edit_car' car.id %}" class="btn btn-warning btn-sm">ویرایش</a>
+                                <a href="{% url 'delete_car' car.id %}" class="btn btn-danger btn-sm" onclick="return confirm('مطمئنی می‌خوای حذف کنی؟');">حذف</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">خودرویی یافت نشد</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <a href="{% url 'add_car' %}" class="btn btn-success mt-3">اضافه کردن خودرو جدید</a>
+{% endblock %}

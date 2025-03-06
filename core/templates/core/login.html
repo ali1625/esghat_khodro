@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %}
+{% block title %}ورود{% endblock %}
+{% block content %}
+    <div class="login-container">
+        <div class="card login-card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">ورود به سیستم</h2>
+                <form method="post" class="row g-3">
+                    {% csrf_token %}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">نام کاربری</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger">{{ form.username.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">رمز عبور</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger">{{ form.password.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-12 d-grid">
+                        <button type="submit" class="btn btn-primary btn-login">ورود</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

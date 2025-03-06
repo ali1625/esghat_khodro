@@ -1,0 +1,61 @@
+{% extends 'core/base.html' %}
+{% block title %}ویرایش قطعات{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card form-card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">ویرایش قطعات: {{ car.acceptance_number }}</h2>
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        {% for field in form %}
+                            {% if field.name != 'plate_description' %}
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <!-- توضیحات پلاک پایین‌تر و توی کادر -->
+                    <div class="mt-4">
+                        <label class="form-label fw-bold">توضیحات پلاک</label>
+                        <div class="card p-3">
+                            {{ form.plate_description }}
+                            {% if form.plate_description.errors %}
+                                <div class="text-danger">{{ form.plate_description.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-submit">ذخیره تغییرات</button>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary">بازگشت</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.getElementsByClassName('needs-validation');
+                Array.prototype.filter.call(forms, function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
+{% endblock %}

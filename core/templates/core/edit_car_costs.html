@@ -1,0 +1,116 @@
+{% extends 'core/base.html' %}
+{% block title %}ویرایش هزینه‌ها{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card form-card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">ویرایش هزینه‌ها: {{ car.acceptance_number }}</h2>
+                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <!-- قیمت روز بالاتر از همه -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">{{ form.daily_price.label }}</label>
+                        {{ form.daily_price }}
+                        {% if form.daily_price.errors %}
+                            <div class="text-danger">{{ form.daily_price.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="row g-3">
+                        <!-- ستون سمت چپ: اسناد -->
+                        <div class="col-md-6">
+                            <h4 class="mb-3">اسناد</h4>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.fine_document.label }}</label>
+                                    {{ form.fine_document }}
+                                    {% if form.fine_document.errors %}
+                                        <div class="text-danger">{{ form.fine_document.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.court_document.label }}</label>
+                                    {{ form.court_document }}
+                                    {% if form.court_document.errors %}
+                                        <div class="text-danger">{{ form.court_document.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.transport_document.label }}</label>
+                                    {{ form.transport_document }}
+                                    {% if form.transport_document.errors %}
+                                        <div class="text-danger">{{ form.transport_document.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.proxy_document.label }}</label>
+                                    {{ form.proxy_document }}
+                                    {% if form.proxy_document.errors %}
+                                        <div class="text-danger">{{ form.proxy_document.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ستون سمت راست: بقیه هزینه‌ها -->
+                        <div class="col-md-6">
+                            <h4 class="mb-3">هزینه‌ها</h4>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.fine.label }}</label>
+                                    {{ form.fine }}
+                                    {% if form.fine.errors %}
+                                        <div class="text-danger">{{ form.fine.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.court_cost.label }}</label>
+                                    {{ form.court_cost }}
+                                    {% if form.court_cost.errors %}
+                                        <div class="text-danger">{{ form.court_cost.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.transport_cost.label }}</label>
+                                    {{ form.transport_cost }}
+                                    {% if form.transport_cost.errors %}
+                                        <div class="text-danger">{{ form.transport_cost.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.proxy_cost.label }}</label>
+                                    {{ form.proxy_cost }}
+                                    {% if form.proxy_cost.errors %}
+                                        <div class="text-danger">{{ form.proxy_cost.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-submit">ذخیره تغییرات</button>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary">بازگشت</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.getElementsByClassName('needs-validation');
+                Array.prototype.filter.call(forms, function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
+{% endblock %}

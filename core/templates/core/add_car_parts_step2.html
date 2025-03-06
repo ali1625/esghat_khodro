@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+{% block title %}ثبت قطعات خودرو{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card form-card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">ثبت قطعات خودرو - {{ car.acceptance_number }}</h2>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <div class="mb-4">
+                    <h5>اطلاعات خودرو</h5>
+                    <p><strong>نوع خودرو:</strong> {{ car.car_type }}</p>
+                    <p><strong>شماره انتظامی:</strong> {{ car.license_plate }}</p>
+                    <p><strong>نام مالک:</strong> {{ car.owner_name }}</p>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        {% for field in form %}
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary">ذخیره</button>
+                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary ms-2">بازگشت</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

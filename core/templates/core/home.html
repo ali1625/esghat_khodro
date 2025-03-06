@@ -1,0 +1,72 @@
+{% extends 'core/base.html' %}
+{% block title %}صفحه اصلی{% endblock %}
+{% block content %}
+    <div class="home-container">
+        <h2 class="mb-4 text-center">خوش آمدید، {{ user.userprofile.first_name }} {{ user.userprofile.last_name }}</h2>
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-4 mb-3">
+                <div class="home-card">
+                    <a href="{% url 'add_car_entry_step1' %}" class="btn btn-custom btn-lg w-100 py-4">
+                        <i class="fas fa-car fa-2x mb-2"></i>
+                        <h4>ثبت ورود خودرو</h4>
+                        <p style="font-size: small;">مرحله اول: اطلاعات خودرو و آورنده</p>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card home-card">
+                    <a href="{% url 'select_car_for_parts' %}" class="btn btn-custom btn-lg w-100 py-4">
+                        <i class="fas fa-cogs fa-2x mb-2"></i>
+                        <h4>ثبت قطعات</h4>
+                        <p style="font-size: small;">مرحله دوم: قطعات و متعلقات</p>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card home-card">
+                    <a href="{% url 'select_car_for_costs' %}" class="btn btn-custom btn-lg w-100 py-4">
+                        <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                        <h4>ثبت هزینه‌ها</h4>
+                        <p style="font-size: small;">مرحله سوم: هزینه‌ها و اسناد</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="mb-3 text-center">آخرین خودروهای ثبت‌شده</h3>
+        <div class="card-body">
+            <div class="card-body">
+                {% if recent_cars %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>شماره پذیرش</th>
+                                <th>نوع خودرو</th>
+                                <th>نام مالک</th>
+                                <th>تاریخ پذیرش</th>
+                                <th>جزئیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for car in recent_cars %}
+                                <tr>
+                                    <td>{{ car.acceptance_number }}</td>
+                                    <td>{{ car.car_type }}</td>
+                                    <td>{{ car.owner_name }}</td>
+                                    <td>{{ car.accepted_at }}</td>
+                                    <td><a href="{% url 'car_details' car.acceptance_number %}" class="btn btn-info btn-sm">جزئیات</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-center">هنوز خودرویی ثبت نشده است.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'registration_list' %}" class="btn btn-secondary">مشاهده لیست ثبت</a>
+        </div>
+    </div>
+{% endblock %}

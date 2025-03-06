@@ -1,0 +1,559 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    {% load custom_filters %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}مدیریت خودروها{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/persianDatepicker.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/persianDatepicker-default.css' %}">
+    <style>
+
+@font-face {
+            font-family: 'Vazir';
+            src: url('{% static "fonts/Vazirmatn-Regular.ttf" %}') format('truetype');
+        }
+      
+        
+        
+        body {
+            font-family: 'Vazir', sans-serif;
+            direction: rtl;
+            background-image: url("{% static 'images/background.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        main {
+            flex: 1 0 auto;
+        }
+        footer {
+            background-color: #343a40;
+            color: #000000 !important;
+            font-weight: bold;
+            padding: 20px 0;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        footer p {
+            margin: 0;
+            color: #000000 !important;
+            font-weight: bold;
+        }
+        .navbar-dark {
+            background-color: #343a40;
+        }
+        .navbar-dark .navbar-nav .nav-link {
+            color: #000000 !important;
+            font-weight: bold;
+        }
+        .navbar-dark .navbar-brand {
+            color: #000000 !important;
+            font-weight: bold;
+        }
+        .btn-custom {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+            color: white;
+            transform: translateY(-2px);
+        }
+        /* استایل صفحه ورود */
+        
+    
+    .login-container {
+        min-height: 80vh;
+        display: flex;
+        justify-content: flex-start; /* چسبیدن به چپ */
+        align-items: center;
+        padding-left: 20px; /* فاصله از لبه چپ */
+    }
+    .login-card {
+        width: 100%;
+        max-width: 600px; /* عرض کارت کمی بیشتر برای دو ستون */
+        padding: 30px;
+        border: none;
+        border-radius: 20px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0); /* گرادیان ملایم‌تر */
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 15px 50px rgba(0, 0, 0, 0.15); /* سایه ملایم‌تر */
+        transform: perspective(1000px) rotateX(5deg) rotateY(5deg); /* افکت 3D */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .login-card:hover {
+        transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25), 0 18px 60px rgba(0, 0, 0, 0.18);
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-control {
+        border-radius: 30px; /* گوشه‌های گردتر برای کادرها */
+        border: 2px solid #599ee7; /* رنگ آبی برای کادرها */
+        padding: 12px;
+        font-size: 16px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-control:focus {
+        border-color: #0056b3; /* رنگ تیره‌تر موقع فوکوس */
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.3); /* سایه ملایم موقع فوکوس */
+        outline: none;
+    }
+    .btn-login {
+        background-color: #007bff;
+        border: none;
+        padding: 15px;
+        font-weight: bold;
+        border-radius: 10px;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn-login:hover {
+        background-color: #0056b3;
+        transform: translateY(-3px); /* حرکت عمودی بیشتر */
+    }
+
+        /* استایل صفحه اصلی */
+        .home-container {
+            padding: 20px;
+        }
+        .home-card {
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 12px 40px rgba(0, 0, 0, 0.19);
+            /*transform: perspective(1000px) rotateX(5deg) rotateY(5deg);*
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .home-card:hover {
+           /* transform: perspective(1000px) rotateX(0deg) rotateY(0deg);*/
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25), 0 15px 50px rgba(0, 0, 0, 0.22);
+        }
+        .form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        }
+       /* .form-card {
+            width: 100%;
+            max-width: 800px; /* بزرگ‌تر برای فرم چندستونی 
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 12px 40px rgba(0, 0, 0, 0.19);
+            transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }*/
+        .form-card:hover {
+           /*transform: perspective(1000px) rotateX(0deg) rotateY(0deg);*/
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25), 0 15px 50px rgba(0, 0, 0, 0.22);
+        }
+        .btn-form {
+            background-color: #007bff;
+            border: none;
+            border-radius: 15px;
+            padding: 10px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-form:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        .form-control {
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .form-label {
+            font-weight: bold;
+            display: block;
+        }
+        .iranian-license-plate {
+        display: flex;
+        align-items: center;
+        background: #fff;
+        border: 2px solid #000;
+        border-radius: 5px;
+        padding: 5px 10px;
+        width: 100%;
+        max-width: 450px; /* کمی بزرگ‌تر برای "ایران" */
+        margin: 10px auto;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* direction: ltr;*/
+    }
+    .iranian-license-plate .flag {
+        width: 30px;
+        height: 20px;
+        background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Flag_of_Iran.svg/1200px-Flag_of_Iran.svg.png') no-repeat center;
+        background-size: contain;
+        margin-right: 10px;
+    }
+    .iranian-license-plate .code {
+        font-size: 12px;
+        color: #000;
+        margin-right: 10px;
+    }
+    .iranian-license-plate .digits1-container {
+        position: relative;
+        display: inline-block;
+    }
+    .iranian-license-plate .digits1 {
+        font-size: 16px;
+        font-weight: bold;
+        color: #000;
+        padding: 2px 5px;
+        border: 1px solid #000;
+        border-radius: 3px;
+        background: #fff;
+        margin-right: 5px;
+    }
+    .iranian-license-plate .iran-label {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        color: #000;
+        font-weight: bold;
+        background: #fff;
+        padding: 2px 5px;
+        border-radius: 3px;
+        border: 1px solid #000;
+    }
+    .iranian-license-plate .digits2,
+    .iranian-license-plate .digits3 {
+        font-size: 16px;
+        font-weight: bold;
+        color: #000;
+        padding: 2px 5px;
+        border: 1px solid #000;
+        border-radius: 3px;
+        background: #fff;
+        margin-right: 5px;
+    }
+    .iranian-license-plate .persian-letter {
+        font-size: 16px;
+        font-weight: bold;
+        color: #000;
+        padding: 2px 5px;
+        border: 1px solid #000;
+        border-radius: 3px;
+        background: #fff;
+        margin-right: 5px;
+    }
+    .iranian-license-plate .separator {
+        margin: 0 5px;
+        font-size: 16px;
+        color: #000;
+    }
+    .form-container {
+        min-height: 80vh;
+        display: flex;
+        justify-content: center; /* وسط‌چین افقی */
+        align-items: center; /* وسط‌چین عمودی */
+        padding: 0; /* حذف padding اضافی */
+    }
+    .form-card {
+        width: 100%;
+        max-width: 1000px; /* عرض مناسب برای دو ستون */
+        padding: 30px;
+        border: none;
+        border-radius: 20px;
+        background: linear-gradient(145deg, #887c7c, #f0f0f0);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 15px 50px rgba(0, 0, 0, 0.15);
+    }
+    .form-card:hover {
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25), 0 18px 60px rgba(0, 0, 0, 0.18);
+    }
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid #007bff;
+        padding: 12px;
+        font-size: 16px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-control:focus {
+        border-color: #0056b3;
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+        outline: none;
+    }
+    .btn-submit {
+        background-color: #007bff;
+        border: none;
+        padding: 15px;
+        font-weight: bold;
+        border-radius: 10px;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn-submit:hover {
+        background-color: #0056b3;
+        transform: translateY(-3px);
+    }
+    .iranian-license-plate {
+        display: flex;
+        align-items: center;
+        background: #fff;
+        border: 2px solid #000;
+        border-radius: 5px;
+        padding: 5px 10px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .iranian-license-plate .flag {
+        width: 30px;
+        height: 20px;
+        background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Flag_of_Iran.svg/1200px-Flag_of_Iran.svg.png') no-repeat center;
+        background-size: contain;
+        margin-right: 10px;
+    }
+    .iranian-license-plate .digits1-container {
+        position: relative;
+        display: inline-block;
+    }
+    .iranian-license-plate .digits1,
+    .iranian-license-plate .digits2,
+    .iranian-license-plate .digits3,
+    .iranian-license-plate .persian-letter {
+        font-size: 16px;
+        font-weight: bold;
+        color: #000;
+        padding: 2px 5px;
+        border: 1px solid #000;
+        border-radius: 3px;
+        background: #fff;
+        margin-right: 5px;
+        width: 60px; /* عرض ثابت برای مرتب بودن */
+    }
+    .iranian-license-plate .iran-label {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        color: #000;
+        font-weight: bold;
+        background: #fff;
+        padding: 2px 5px;
+        border-radius: 3px;
+        border: 1px solid #000;
+    }
+    .iranian-license-plate .separator {
+        margin: 0 5px;
+        font-size: 16px;
+        color: #000;
+    }
+    .no-spinner::-webkit-inner-spin-button,
+    .no-spinner::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .no-spinner {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+    .form-label {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 5px;
+        display: block;
+    }
+    .row.g-3 {
+        margin-bottom: 20px;
+    }
+    .card.p-3 {
+        background: #fff;
+        border: 1px solid #d1d1d1;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .card.p-3 textarea {
+        width: 100%;
+        border: 2px solid #007bff;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 16px;
+    }
+    .iranian-license-plate input,
+    .iranian-license-plate select {
+        height: 40px; /* ارتفاع یکسان برای هماهنگی */
+        
+    }   
+    @media print {
+        .btn, .navbar, footer {
+            display: none; /* مخفی کردن دکمه‌ها و نوار导航 موقع چاپ */
+        }
+        .form-container {
+            box-shadow: none;
+            border: none;
+        }
+        .card {
+            border: none;
+        }
+        .mb-4 {
+            page-break-inside: avoid; /* جلوگیری از شکستن کادرها بین صفحات */
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .col-md-4 {
+            width: 33.33%; /* مطمئن شدن از سه ستونی بودن موقع چاپ */
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">مدیریت خودرو</a>
+            <div class="navbar-nav">
+                {% if user.is_authenticated %}
+                    <a class="nav-link" href="{% url 'home' %}">صفحه اصلی</a>
+                    <a class="nav-link" href="{% url 'registration_list' %}">لیست ثبت</a>
+                    <a class="nav-link" href="{% url 'add_car_entry_step1' %}">ثبت خودرو</a>
+                    {% if user.is_superuser %}
+                        <a class="nav-link" href="{% url 'register_user' %}">ثبت کاربر جدید</a>
+                    {% endif %}
+                    <a class="nav-link" href="{% url 'logout' %}">خروج ({{ user.username }})</a>
+                {% else %}
+                    <a class="nav-link" href="{% url 'login' %}">ورود</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <main>
+        <div class="container mt-4">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+    <footer>
+        <div class="container">
+            <p>© 2025 مدیریت خودروها. تمامی حقوق محفوظ است.</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // برای license_plate (خودرو)
+            const licensePlateFields = document.querySelectorAll('.iranian-license-plate input:not([name^="driver_"]), .iranian-license-plate select:not([name^="driver_"])');
+            let fullPlate = '';
+    
+            licensePlateFields.forEach(field => {
+                field.addEventListener('input', function (e) {
+                    let value = e.target.value;
+                    if (e.target.classList.contains('digits1') || e.target.classList.contains('digits3')) {
+                        value = value.replace(/[^0-9]/g, '').slice(0, 2);
+                    } else if (e.target.classList.contains('digits2')) {
+                        value = value.replace(/[^0-9]/g, '').slice(0, 3);
+                    } else if (e.target.classList.contains('persian-letter')) {
+                        value = value.replace(/[^آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]/g, '').slice(0, 1);
+                    }
+                    e.target.value = value;
+    
+                    fullPlate = '';
+                    const plateInputs = document.querySelectorAll('.iranian-license-plate input[type="number"]:not([name^="driver_"]), .iranian-license-plate select:not([name^="driver_"])');
+                    plateInputs.forEach(input => {
+                        if (input.tagName.toLowerCase() === 'select') {
+                            fullPlate += input.value || '';
+                        } else {
+                            fullPlate += input.value || '';
+                        }
+                    });
+                    const hiddenInput = document.querySelector('input[name="license_plate"]');
+                    if (hiddenInput) {
+                        hiddenInput.value = fullPlate.replace(/[^0-9آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]/g, '').replace(/(.{2})(.{3})(.)(.{2})/, '$1 (ایران) - $2 - $3 - $4');
+                    }
+                    console.log("Hidden input value (car): ", hiddenInput.value);
+                });
+            });
+    
+            // برای driver_license_plate (آورنده)
+            const driverLicensePlateFields = document.querySelectorAll('.iranian-license-plate input[name^="driver_"], .iranian-license-plate select[name^="driver_"]');
+            let driverFullPlate = '';
+    
+            driverLicensePlateFields.forEach(field => {
+                field.addEventListener('input', function (e) {
+                    let value = e.target.value;
+                    if (e.target.classList.contains('digits1') || e.target.classList.contains('digits3')) {
+                        value = value.replace(/[^0-9]/g, '').slice(0, 2);
+                    } else if (e.target.classList.contains('digits2')) {
+                        value = value.replace(/[^0-9]/g, '').slice(0, 3);
+                    } else if (e.target.classList.contains('persian-letter')) {
+                        value = value.replace(/[^آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]/g, '').slice(0, 1);
+                    }
+                    e.target.value = value;
+    
+                    driverFullPlate = '';
+                    const driverPlateInputs = document.querySelectorAll('.iranian-license-plate input[type="number"][name^="driver_"], .iranian-license-plate select[name^="driver_"]');
+                    driverPlateInputs.forEach(input => {
+                        if (input.tagName.toLowerCase() === 'select') {
+                            driverFullPlate += input.value || '';
+                        } else {
+                            driverFullPlate += input.value || '';
+                        }
+                    });
+                    const driverHiddenInput = document.querySelector('input[name="driver_license_plate"]');
+                    if (driverHiddenInput) {
+                        driverHiddenInput.value = driverFullPlate.replace(/[^0-9آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]/g, '').replace(/(.{2})(.{3})(.)(.{2})/, '$1 (ایران) - $2 - $3 - $4');
+                    }
+                    console.log("Hidden input value (driver): ", driverHiddenInput.value);
+                });
+            });
+    
+            // تنظیم مقدار اولیه برای ویرایش
+            const hiddenInputs = document.querySelectorAll('input[name="license_plate"], input[name="driver_license_plate"]');
+            hiddenInputs.forEach(input => {
+                if (input.name === 'license_plate' && input.value) {
+                    const parts = input.value.match(/(\d{2}) \(ایران\) - (\d{3}) - (.+) - (\d{2})/);
+                    if (parts) {
+                        document.querySelector('.digits1').value = parts[1];
+                        document.querySelector('.digits2').value = parts[2];
+                        document.querySelector('.persian-letter').value = parts[3];
+                        document.querySelector('.digits3').value = parts[4];
+                    }
+                } else if (input.name === 'driver_license_plate' && input.value) {
+                    const parts = input.value.match(/(\d{2}) \(ایران\) - (\d{3}) - (.+) - (\d{2})/);
+                    if (parts) {
+                        document.querySelector('.digits1[name="driver_digits1"]').value = parts[1];
+                        document.querySelector('.digits2[name="driver_digits2"]').value = parts[2];
+                        document.querySelector('.persian-letter[name="driver_persian_letter"]').value = parts[3];
+                        document.querySelector('.digits3[name="driver_digits3"]').value = parts[4];
+                    }
+                }
+            });
+        });
+    </script>
+</html>

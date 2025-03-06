@@ -1,0 +1,180 @@
+{% extends 'core/base.html' %}
+{% block title %}جزئیات خودرو{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card form-card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">جزئیات خودرو: {{ car.acceptance_number }}</h2>
+
+                <!-- کادر اطلاعات خودرو -->
+                <div class="mb-4">
+                    <h3 class="mb-3 text-center">اطلاعات خودرو</h3>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <p><strong>شماره پارکینگ:</strong> {{ car.parking_number }}</p>
+                            <p><strong>تاریخ تحویل:</strong> {{ car.delivery_date }}</p>
+                            <p><strong>نوع خودرو:</strong> {{ car.car_type }}</p>
+                            <p><strong>شماره انتظامی:</strong> {{ car.license_plate }}</p>
+                            <p><strong>نام مالک:</strong> {{ car.owner_name }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>شماره موتور:</strong> {{ car.engine_number }}</p>
+                            <p><strong>شماره شاسی:</strong> {{ car.chassis_number }}</p>
+                            <p><strong>پلاک اتاق:</strong> {{ car.has_cabin_plate|yesno:"دارد,ندارد" }}</p>
+                            <p><strong>شماره ثبت:</strong> {{ car.registration_number }}</p>
+                            <p><strong>مسئول پذیرش:</strong> 
+                                {% if car.accepted_by %}
+                                    {% if car.accepted_by.userprofile %}
+                                        {{ car.accepted_by.userprofile.first_name }} {{ car.accepted_by.userprofile.last_name }}
+                                    {% else %}
+                                        {{ car.accepted_by.username }}
+                                    {% endif %}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>تاریخ پذیرش:</strong> {{ car.accepted_at }}</p>
+                            <p><strong>نام راننده:</strong> {{ car.driver_name }}</p>
+                            <p><strong>شماره پلاک راننده:</strong> {{ car.driver_license_plate }}</p>
+                            <p><strong>شماره تماس راننده:</strong> {{ car.driver_phone }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- کادر قطعات -->
+                <div class="mb-4">
+                    <h3 class="mb-3 text-center">قطعات</h3>
+                    {% if car.parts %}
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <p><strong>درصد اتاق:</strong> {{ car.parts.cabin_percentage|default_if_none:'' }}</p>
+                                <p><strong>درب موتور:</strong> {{ car.parts.hood|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>رادیاتور:</strong> {{ car.parts.radiator|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>ایسیو:</strong> {{ car.parts.ecu|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>درب جلو و عقب:</strong> {{ car.parts.front_rear_doors|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>سیم‌کشی:</strong> {{ car.parts.wiring|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>کابل باطری:</strong> {{ car.parts.battery_cable|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>بخاری:</strong> {{ car.parts.heater|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>فنر زیر و بند:</strong> {{ car.parts.suspension_spring|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>دینام:</strong> {{ car.parts.alternator|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>موتور برف‌پاک‌کن:</strong> {{ car.parts.wiper_motor|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>رینگ و لاستیک:</strong> {{ car.parts.rims_tires|yesno:"دارد,ندارد" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>کاربراتور:</strong> {{ car.parts.carburetor|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>استارت:</strong> {{ car.parts.starter|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>گیربکس:</strong> {{ car.parts.gearbox|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>دیفرانسیل:</strong> {{ car.parts.differential|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>دلکو و کوئل:</strong> {{ car.parts.distributor_coil|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>سیفون بنزین:</strong> {{ car.parts.fuel_pump|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>صندلی:</strong> {{ car.parts.seats|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>دیسک چرخ جلو:</strong> {{ car.parts.front_disc|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>باطری:</strong> {{ car.parts.battery|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>جعبه فرمان:</strong> {{ car.parts.steering_box|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>سپر عقب و جلو:</strong> {{ car.parts.bumpers|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>کاسه چرخ:</strong> {{ car.parts.wheel_drum|yesno:"دارد,ندارد" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>پلوس و گاردان:</strong> {{ car.parts.driveshaft_cv|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>ریل سوخت:</strong> {{ car.parts.fuel_rail|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>درب صندوق:</strong> {{ car.parts.trunk_lid|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>سند:</strong> {{ car.parts.documents|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>انژکتور و سوزن انژکتور:</strong> {{ car.parts.injector|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>شیشه:</strong> {{ car.parts.glass|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>کولر:</strong> {{ car.parts.ac|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>کپسول:</strong> {{ car.parts.gas_cylinder|default_if_none:'' }}</p>
+                                <p><strong>پوستر ترمز:</strong> {{ car.parts.brake_booster|yesno:"دارد,ندارد" }}</p>
+                                <p><strong>وزن:</strong> {{ car.parts.weight|default_if_none:'' }}</p>
+                                <p><strong>وضعیت پلاک:</strong> {{ car.parts.plate_status|default_if_none:'' }}</p>
+                                <p><strong>توضیحات پلاک:</strong> {{ car.parts.plate_description|default_if_none:'' }}</p>
+                                <p><strong>مسئول ثبت:</strong> 
+                                    {% if car.parts.recorded_by %}
+                                        {% if car.parts.recorded_by.userprofile %}
+                                            {{ car.parts.recorded_by.userprofile.first_name }} {{ car.parts.recorded_by.userprofile.last_name }}
+                                        {% else %}
+                                            {{ car.parts.recorded_by.username }}
+                                        {% endif %}
+                                    {% endif %}
+                                </p>
+                                <p><strong>تاریخ ثبت:</strong> {{ car.parts.recorded_at }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-center">قطعات هنوز ثبت نشده است.</p>
+                    {% endif %}
+                </div>
+
+                <!-- کادر هزینه‌ها -->
+                <div class="mb-4">
+                    <h3 class="mb-3 text-center">هزینه‌ها</h3>
+                    {% if car.costs %}
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <p><strong>خلافی:</strong> {{ car.costs.fine|default_if_none:'' }}</p>
+                                <p><strong>هزینه حمل:</strong> {{ car.costs.transport_cost|default_if_none:'' }}</p>
+                                <p><strong>هزینه دادگاهی:</strong> {{ car.costs.court_cost|default_if_none:'' }}</p>
+                                <p><strong>هزینه وکالت:</strong> {{ car.costs.proxy_cost|default_if_none:'' }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p>
+                                    {% if car.costs.fine_document and car.costs.fine_document.url %}
+                                        <strong><a href="{{ car.costs.fine_document.url }}" target="_blank">سند خلافی</a></strong>
+                                    {% else %}
+                                        <strong>سند خلافی</strong>
+                                    {% endif %}
+                                </p>
+                                <p>
+                                    {% if car.costs.transport_document and car.costs.transport_document.url %}
+                                        <strong><a href="{{ car.costs.transport_document.url }}" target="_blank">سند حمل</a></strong>
+                                    {% else %}
+                                        <strong>سند حمل</strong>
+                                    {% endif %}
+                                </p>
+                                <p>
+                                    {% if car.costs.court_document and car.costs.court_document.url %}
+                                        <strong><a href="{{ car.costs.court_document.url }}" target="_blank">سند دادگاهی</a></strong>
+                                    {% else %}
+                                        <strong>سند دادگاهی</strong>
+                                    {% endif %}
+                                </p>
+                                <p>
+                                    {% if car.costs.proxy_document and car.costs.proxy_document.url %}
+                                        <strong><a href="{{ car.costs.proxy_document.url }}" target="_blank">سند وکالت</a></strong>
+                                    {% else %}
+                                        <strong>سند وکالت</strong>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>قیمت روز:</strong> {{ car.costs.daily_price|default_if_none:'' }}</p>
+                                <p><strong>جمع کل هزینه‌ها:</strong> 
+                                    {% with total_partial=car.costs.fine|add:car.costs.transport_cost|add:car.costs.court_cost|add:car.costs.proxy_cost %}
+                                        {{ total_partial|default_if_none:'' }}
+                                    {% endwith %}
+                                </p>
+                                
+                                <p><strong>مسئول ثبت:</strong> 
+                                    {% if car.costs.recorded_by %}
+                                        {% if car.costs.recorded_by.userprofile %}
+                                            {{ car.costs.recorded_by.userprofile.first_name }} {{ car.costs.recorded_by.userprofile.last_name }}
+                                        {% else %}
+                                            {{ car.costs.recorded_by.username }}
+                                        {% endif %}
+                                    {% endif %}
+                                </p>
+                                <p><strong>تاریخ ثبت:</strong> {{ car.costs.recorded_at }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-center">هزینه‌ها هنوز ثبت نشده است.</p>
+                    {% endif %}
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary">بازگشت</a>
+                    <button onclick="window.print()" class="btn btn-primary ms-2">چاپ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

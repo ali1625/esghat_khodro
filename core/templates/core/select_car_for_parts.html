@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+{% block title %}انتخاب خودرو برای ثبت قطعات{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card form-card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">انتخاب خودرو برای ثبت قطعات</h2>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">خودروها (بدون قطعات ثبت‌شده)</label>
+                        <select name="selected_car" class="form-control">
+                            <option value="">-- انتخاب کنید --</option>
+                            {% for car in cars_without_parts %}
+                                <option value="{{ car.acceptance_number }}">{{ car.car_type }} - {{ car.acceptance_number }} ({{ car.license_plate }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">ثبت قطعات</button>
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary ms-2">بازگشت</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/persianDatepicker-default.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/persianDatepicker.js' %}"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        @font-face {
+            font-family: 'Vazir';
+            src: url('{% static "fonts/Vazirmatn-Light.ttf" %}') format('truetype');
+        }
+        body {
+            font-family: 'Vazir', sans-serif;
+            direction: rtl;
+        }
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        .header {
+            background-color: #343a40;
+            color: white;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .header .user-info a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+        .header .user-info a:hover {
+            text-decoration: underline;
+        }
+
+        /* ساختار کلی */
+        .container-fluid {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: row; /* پیش‌فرض برای دسکتاپ */
+        }
+
+        /* سایدبار */
+        .sidebar {
+            background-color: #6d7985;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .sidebar h4 {
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+            padding: 10px;
+            display: block;
+            text-decoration: none;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #5a656f;
+            border-radius: 5px;
+        }
+
+        /* دسکتاپ: سایدبار عمودی کنار صفحه */
+        @media (min-width: 992px) {
+            .sidebar {
+                width: 250px;
+                position: fixed;
+                top: 0px; /* زیر هدر */
+                right: 0;
+                height: calc(100vh ); /* ارتفاع باقیمانده */
+                border-left: 1px solid #dee2e6;
+            }
+            .sidebar nav {
+                display: flex;
+                flex-direction: column;
+            }
+            .content {
+                margin-right: 250px;
+                width: calc(100% - 250px);
+                text-align: center;
+            }
+            .sidebar-toggle {
+                display: none;
+            }
+        }
+
+        /* موبایل: سایدبار عمودی زیر محتوا */
+        @media (max-width: 991.98px) {
+            .container-fluid {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                position: relative;
+                border-left: none;
+                border-bottom: 1px solid #dee2e6;
+                order: 0; /* زیر محتوا */
+            }
+            .sidebar nav {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .sidebar.active {
+                display: block;
+            }
+            .content {
+                margin-right: 0;
+                width: 100%;
+                order: 1; /* بالای سایدبار */
+                text-align: center;
+            }
+            .sidebar-toggle {
+                margin: 10px;
+            }
+        }
+
+        /* محتوای اصلی */
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+        .form-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* استایل‌های دیگه بدون تغییر */
+        .home-card {
+            margin-top: 20px;
+            border-radius: 85px;
+            background: linear-gradient(225deg, #0f647d, #0d5469);
+            box-shadow: -5px 5px 31px #0e5c74, 5px -5px 31px #0e5e76;
+        }
+        .home-card:hover {
+            border-radius: 85px;
+            background: linear-gradient(225deg, #052f3c, #052832);
+            box-shadow: -5px 5px 31px #052c37, 5px -5px 31px #052c39;
+        }
+        .card-body {
+            border-radius: 20px;
+            background: linear-gradient(145deg, #f7f7f8, #f2f2f3);
+        }
+        .btn-modern {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        /* بقیه استایل‌ها بدون تغییر */
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>سیستم مدیریت خودرو</div>
+        <div class="user-info">
+            {% if user.is_authenticated %}
+                <span>
+                    {{ user.userprofile.first_name|default:user.username }}
+                    {{ user.userprofile.last_name|default:'' }}
+                </span>
+                <a href="{% url 'logout' %}" class="btn btn-sm btn-danger ms-2">خروج</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-sm btn-primary">ورود</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="container-fluid">
+        <button class="btn btn-primary sidebar-toggle d-lg-none" onclick="toggleSidebar()">
+            <i class="bi bi-list"></i> منو
+        </button>
+        <div class="sidebar d-lg-block" id="sidebar">
+            <h4 class="text-center mb-4">منو</h4>
+            <nav>
+                <a href="{% url 'home' %}" class="nav-link">صفحه اصلی</a>
+                <a href="{% url 'registration_list' %}" class="nav-link">لیست ثبت</a>
+                {% if user.is_superuser %}
+                    <a href="{% url 'user_management' %}" class="nav-link">مدیریت کاربران</a>
+                {% endif %}
+                <a href="{% url 'change_password' %}" class="nav-link">تغییر رمز عبور</a>
+            </nav>
+        </div>
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("active");
+        }
+    </script>
+</body>
+</html>

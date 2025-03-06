@@ -1,0 +1,21 @@
+{% extends 'core/base.html' %}
+{% block title %}ویرایش صاحب خودرو{% endblock %}
+{% block content %}
+    <h2 class="mb-4">ویرایش صاحب خودرو: {{ owner.first_name }} {{ owner.last_name }}</h2>
+    <form method="post" class="card p-4">
+        {% csrf_token %}
+        <div class="row">
+            {% for field in form %}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+        <a href="{% url 'owner_list' %}" class="btn btn-secondary">بازگشت</a>
+    </form>
+{% endblock %}
