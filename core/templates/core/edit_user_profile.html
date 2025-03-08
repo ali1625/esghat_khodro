@@ -1,10 +1,10 @@
 {% extends 'core/base.html' %}
-{% block title %}تغییر رمز عبور{% endblock %}
+{% block title %}ویرایش پروفایل{% endblock %}
 {% block content %}
     <div class="form-container">
         <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
             <div class="card-body p-4">
-                <h2 class="card-title text-center mb-4 fw-bold text-primary">تغییر رمز عبور</h2>
+                <h2 class="card-title text-center mb-4 fw-bold text-primary">ویرایش پروفایل برای {{ user.username }}</h2>
 
                 {% if messages %}
                     {% for message in messages %}
@@ -15,26 +15,25 @@
                     {% endfor %}
                 {% endif %}
 
-                <p class="text-center text-muted">لطفاً رمز عبور اولیه خود را تغییر دهید.</p>
                 <form method="post">
                     {% csrf_token %}
                     <div class="mb-3">
-                        {{ form.new_password.label_tag }}
-                        {{ form.new_password }}
-                        <small class="form-text text-muted">{{ form.new_password.help_text }}</small>
-                        {% if form.new_password.errors %}
-                            <div class="text-danger">{{ form.new_password.errors }}</div>
+                        {{ form.first_name.label_tag }}
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger">{{ form.first_name.errors }}</div>
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        {{ form.confirm_password.label_tag }}
-                        {{ form.confirm_password }}
-                        {% if form.confirm_password.errors %}
-                            <div class="text-danger">{{ form.confirm_password.errors }}</div>
+                        {{ form.last_name.label_tag }}
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger">{{ form.last_name.errors }}</div>
                         {% endif %}
                     </div>
                     <div class="text-center">
-                        <button type="submit" class="btn btn-primary modern-btn">تغییر رمز</button>
+                        <button type="submit" class="btn btn-primary modern-btn">ذخیره تغییرات</button>
+                        <a href="{% url 'user_management' %}" class="btn btn-secondary modern-btn ms-2">بازگشت</a>
                     </div>
                 </form>
             </div>

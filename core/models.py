@@ -7,10 +7,16 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="کاربر")
     first_name = models.CharField(max_length=50, verbose_name="نام")
     last_name = models.CharField(max_length=50, verbose_name="نام خانوادگی")
+    national_code = models.CharField(max_length=10, unique=True, verbose_name="کد ملی")  # بدون default
+    phone_number = models.CharField(max_length=11, verbose_name="شماره موبایل", default="09120000000")
+    must_change_password = models.BooleanField(default=True, verbose_name="باید رمز را تغییر دهد")
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+    class Meta:
+        verbose_name = "پروفایل کاربر"
+        verbose_name_plural = "پروفایل‌های کاربران"
 class CarEntry(models.Model):
     parking_number = models.CharField(max_length=20, verbose_name="شماره پارکینگ")
     delivery_date = models.CharField(max_length=10, verbose_name="تاریخ تحویل")
@@ -127,3 +133,29 @@ class CarCosts(models.Model):
 
     def __str__(self):
         return f"هزینه‌های {self.car}"
+
+
+class EditLog(models.Model):
+    EDIT_TYPES = (
+        ('CAR_ENTRY', 'ویرایش ورود خودرو'),
+        ('CAR_PARTS', 'ویرایش قطعات خودرو'),
+        ('CAR_COSTS', 'ویرایش هزینه‌ها'),
+    )
+
+    edit_type = models.CharField(max_length=20, choices=EDIT_TYPES, verbose_name="نوع ویرایش")
+    car_entry = models.ForeignKey('CarEntry', on_delete=models.CASCADE, verbose_name="خودرو", related_name="edit_logs")
+    edited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="ویرایش‌کننده",
+                                  related_name="edit_logs")
+    edited_at = models.CharField(max_length=10, verbose_name="تاریخ ویرایش")  # تاریخ شمسی
+
+    def save(self, *args, **kwargs):
+        if not self.edited_at:
+            self.edited_at = jdatetime.now().strftime('%Y/%m/%d')
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.get_edit_type_display()} - {self.car_entry.acceptance_number} - {self.edited_at}"
+
+    class Meta:
+        verbose_name = "لاگ ویرایش"
+        verbose_name_plural = "لاگ‌های ویرایش"

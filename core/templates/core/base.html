@@ -18,82 +18,99 @@
         body {
             font-family: 'Vazir', sans-serif;
             direction: rtl;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 0;
         }
         html, body {
             overflow-x: hidden;
             max-width: 100%;
         }
 
+        /* هدر */
         .header {
-            background-color: #343a40;
+            background: linear-gradient(90deg, #343a40 0%, #495057 100%);
             color: white;
-            padding: 10px 20px;
+            padding: 15px 25px;
             position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
             z-index: 1000;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         .header .user-info {
             display: flex;
             align-items: center;
+            gap: 15px;
         }
         .header .user-info a {
             color: #fff;
             text-decoration: none;
-            margin-left: 15px;
+            font-weight: 500;
+            transition: color 0.3s ease;
         }
         .header .user-info a:hover {
-            text-decoration: underline;
+            color: #adb5bd;
+        }
+        .header .btn {
+            border-radius: 20px;
+            padding: 6px 15px;
         }
 
         /* ساختار کلی */
         .container-fluid {
             min-height: 100vh;
             display: flex;
-            flex-direction: row; /* پیش‌فرض برای دسکتاپ */
+            flex-direction: row;
         }
 
         /* سایدبار */
         .sidebar {
-            background-color: #6d7985;
+            background: linear-gradient(180deg, #6d7985 0%, #495057 100%);
             padding: 20px;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
         }
         .sidebar h4 {
-            color: white;
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
         }
         .sidebar .nav-link {
-            color: #fff;
-            padding: 10px;
+            color: #e9ecef;
+            padding: 12px 15px;
             display: block;
             text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
         .sidebar .nav-link:hover {
             background-color: #5a656f;
-            border-radius: 5px;
+            color: #fff;
+            transform: translateX(-5px);
         }
 
-        /* دسکتاپ: سایدبار عمودی کنار صفحه */
+        /* دسکتاپ: سایدبار عمودی */
         @media (min-width: 992px) {
             .sidebar {
-                width: 250px;
+                width: 220px;
                 position: fixed;
-                top: 0px; /* زیر هدر */
+                top: 0px;
                 right: 0;
-                height: calc(100vh ); /* ارتفاع باقیمانده */
-                border-left: 1px solid #dee2e6;
+                height: calc(100vh);
+                border-left: none;
             }
             .sidebar nav {
                 display: flex;
                 flex-direction: column;
+                gap: 10px;
             }
             .content {
-                margin-right: 250px;
-                width: calc(100% - 250px);
+                margin-right: 220px;
+                width: calc(100% - 220px);
                 text-align: center;
             }
             .sidebar-toggle {
@@ -101,7 +118,7 @@
             }
         }
 
-        /* موبایل: سایدبار عمودی زیر محتوا */
+        /* موبایل: سایدبار زیر محتوا */
         @media (max-width: 991.98px) {
             .container-fluid {
                 flex-direction: column;
@@ -109,14 +126,14 @@
             .sidebar {
                 width: 100%;
                 position: relative;
-                border-left: none;
                 border-bottom: 1px solid #dee2e6;
-                order: 0; /* زیر محتوا */
+                order: 2;
             }
             .sidebar nav {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                gap: 10px;
             }
             .sidebar.active {
                 display: block;
@@ -124,65 +141,46 @@
             .content {
                 margin-right: 0;
                 width: 100%;
-                order: 1; /* بالای سایدبار */
+                order: 1;
                 text-align: center;
             }
             .sidebar-toggle {
-                margin: 10px;
+                margin: 15px auto;
+                display: block;
+                border-radius: 25px;
+                padding: 10px 20px;
+                background: #007bff;
+                color: #fff;
+                transition: all 0.3s ease;
+            }
+            .sidebar-toggle:hover {
+                background: #0056b3;
+                transform: translateY(-2px);
             }
         }
 
         /* محتوای اصلی */
         .content {
             flex-grow: 1;
-            padding: 20px;
+            padding: 30px;
         }
         .form-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
-
-        /* استایل‌های دیگه بدون تغییر */
-        .home-card {
-            margin-top: 20px;
-            border-radius: 85px;
-            background: linear-gradient(225deg, #0f647d, #0d5469);
-            box-shadow: -5px 5px 31px #0e5c74, 5px -5px 31px #0e5e76;
-        }
-        .home-card:hover {
-            border-radius: 85px;
-            background: linear-gradient(225deg, #052f3c, #052832);
-            box-shadow: -5px 5px 31px #052c37, 5px -5px 31px #052c39;
-        }
-        .card-body {
-            border-radius: 20px;
-            background: linear-gradient(145deg, #f7f7f8, #f2f2f3);
-        }
-        .btn-modern {
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .btn-modern:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-        }
-        /* بقیه استایل‌ها بدون تغییر */
     </style>
 </head>
 <body>
     <div class="header">
-        <div>سیستم مدیریت خودرو</div>
+        <div class="fw-bold fs-5">سیستم مدیریت خودرو</div>
         <div class="user-info">
             {% if user.is_authenticated %}
-                <span>
+                <span class="fw-medium">
                     {{ user.userprofile.first_name|default:user.username }}
                     {{ user.userprofile.last_name|default:'' }}
                 </span>
-                <a href="{% url 'logout' %}" class="btn btn-sm btn-danger ms-2">خروج</a>
+                <a href="{% url 'logout' %}" class="btn btn-sm btn-danger">خروج</a>
             {% else %}
                 <a href="{% url 'login' %}" class="btn btn-sm btn-primary">ورود</a>
             {% endif %}
@@ -195,12 +193,13 @@
         <div class="sidebar d-lg-block" id="sidebar">
             <h4 class="text-center mb-4">منو</h4>
             <nav>
-                <a href="{% url 'home' %}" class="nav-link">صفحه اصلی</a>
-                <a href="{% url 'registration_list' %}" class="nav-link">لیست ثبت</a>
+                <a href="{% url 'home' %}" class="nav-link"><i class="bi bi-house me-2"></i> صفحه اصلی</a>
+                <a href="{% url 'registration_list' %}" class="nav-link"><i class="bi bi-list-ul me-2"></i> لیست ثبت</a>
                 {% if user.is_superuser %}
-                    <a href="{% url 'user_management' %}" class="nav-link">مدیریت کاربران</a>
+                    <a href="{% url 'user_management' %}" class="nav-link"><i class="bi bi-people me-2"></i> مدیریت کاربران</a>
+                    <a href="{% url 'edit_logs' acceptance_number='all' %}" class="nav-link"><i class="bi bi-clock-history me-2"></i> لاگ‌های ویرایش</a>
                 {% endif %}
-                <a href="{% url 'change_password' %}" class="nav-link">تغییر رمز عبور</a>
+                <a href="{% url 'change_password' %}" class="nav-link"><i class="bi bi-key me-2"></i> تغییر رمز عبور</a>
             </nav>
         </div>
         <div class="content">

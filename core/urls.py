@@ -19,5 +19,16 @@ urlpatterns = [
     path('select_car_for_costs/', views.select_car_for_costs, name='select_car_for_costs'),
     # path('', views.registration_list, name='registration_list'),
     path('change_password/', views.change_password, name='change_password'),
-    path('user_management/', views.user_management, name='user_management'),
+
+    #لاگ ویرایش
+    path('edit-logs/', views.edit_logs, name='edit_logs'),
+    path('edit-logs/<str:acceptance_number>/', views.edit_logs, name='edit_logs'),
+    #مدیریت کاربران
+    path('user-management/', views.user_management, name='user_management'),
+    path('user/<int:user_id>/change-password/', views.admin_change_password, name='admin_change_password'),
+    path('user/<int:user_id>/edit-profile/', views.edit_user_profile, name='edit_user_profile'),
+    path('add-user/', views.add_user, name='add_user'),
 ]
+
+
+

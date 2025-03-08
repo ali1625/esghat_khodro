@@ -1,32 +1,120 @@
 {% extends 'core/base.html' %}
+{% load static widget_tweaks %}
 {% block title %}انتخاب خودرو برای ثبت هزینه‌ها{% endblock %}
 {% block content %}
     <div class="form-container">
-        <div class="card form-card">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">انتخاب خودرو برای ثبت هزینه‌ها</h2>
+        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4 fw-bold text-primary">انتخاب خودرو برای ثبت هزینه‌ها</h2>
+
+                <!-- پیام‌ها -->
                 {% if messages %}
                     {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                     {% endfor %}
                 {% endif %}
-                <form method="post">
+
+                <!-- فرم -->
+                <form method="post" class="needs-validation" novalidate>
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">خودروها (بدون هزینه ثبت‌شده)</label>
-                        <select name="selected_car" class="form-control" required>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted d-block text-end">خودروها (بدون هزینه ثبت‌شده)</label>
+                        <select name="selected_car" class="form-select modern-select" required>
                             <option value="">-- انتخاب کنید --</option>
                             {% for car in cars_without_costs %}
                                 <option value="{{ car.acceptance_number }}">{{ car.car_type }} - {{ car.acceptance_number }} ({{ car.license_plate }})</option>
                             {% endfor %}
                         </select>
+                        <div class="invalid-feedback text-end">لطفاً یک خودرو انتخاب کنید</div>
                     </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary">ثبت هزینه‌ها</button>
-                        <a href="{% url 'home' %}" class="btn btn-outline-secondary ms-2">بازگشت</a>
+
+                    <!-- دکمه‌ها -->
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">
+                            <i class="bi bi-save me-2"></i>ثبت هزینه‌ها
+                        </button>
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- استایل‌های سفارشی -->
+    <style>
+        .modern-card {
+            border: none;
+            border-radius: 15px;
+            background: #ffffff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .modern-select {
+            border-radius: 10px;
+            border: 1px solid #6c757d;
+            padding: 12px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+        }
+        .modern-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+        .modern-btn {
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .form-label {
+            margin-bottom: 0.25rem; /* فاصله بین لیبل و سلکت */
+        }
+        .text-primary {
+            color: #007bff !important;
+        }
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .invalid-feedback {
+            display: none;
+        }
+        .was-validated .form-select:invalid ~ .invalid-feedback {
+            display: block;
+        }
+    </style>
+
+    <!-- انیمیشن‌ها و آیکون‌ها -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- اسکریپت‌ها -->
+    <script>
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.getElementsByClassName('needs-validation');
+                Array.prototype.filter.call(forms, function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
 {% endblock %}

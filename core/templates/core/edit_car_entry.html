@@ -1,80 +1,185 @@
 {% extends 'core/base.html' %}
-{% load static %}
+{% load static widget_tweaks %}
 {% block title %}ویرایش خودرو{% endblock %}
 {% block content %}
     <div class="form-container">
-        <div class="card form-card">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">ویرایش خودرو: {{ car.acceptance_number }}</h2>
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-                <form method="post" class="needs-validation" novalidate id="car-entry-form">
+        <!-- نمایش پیام‌ها -->
+        {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <!-- فرم ویرایش -->
+        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4 fw-bold text-primary">ویرایش خودرو: {{ car.car_type }}</h2>
+                <form method="post" id="car-edit-form" class="needs-validation" novalidate>
                     {% csrf_token %}
                     <!-- شماره پلاک خودرو -->
-                    <div class="row g-3 mb-4">
+                    <div class="row g-4 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">شماره انتظامی</label>
-                            <div class="iranian-license-plate d-flex align-items-center">
-                                <div class="flag me-2"></div>
-                                <div class="digits1-container me-2 position-relative">
-                                    <input type="text" name="digits1" class="form-control digits1 no-spinner" maxlength="2" pattern="\d{2}" placeholder="12" value="{{ form.initial.digits1|default:'' }}" required>
+                            <label class="form-label fw-bold text-muted text-end d-block">شماره انتظامی</label>
+                            <div class="iranian-license-plate d-flex align-items-center" dir="ltr">
+                                <div class="flag ms-2"></div>
+                                <input type="text" name="digits1" class="form-control modern-input no-spinner uniform-size ms-2" maxlength="2" pattern="\d{2}" value="{{ form.initial.digits1|default_if_none:'' }}" placeholder="41" required>
+                                <span class="separator mx-1">-</span>
+                                <select name="persian_letter" class="form-select modern-select uniform-size ms-2" required>
+                                    <option value="" disabled>-- انتخاب کنید --</option>
+                                    {% for char in "الف ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی" %}
+                                        <option value="{{ char }}" {% if char == form.initial.persian_letter %}selected{% endif %}>{{ char }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="separator mx-1">-</span>
+                                <input type="text" name="digits2" class="form-control modern-input no-spinner uniform-size ms-2" maxlength="3" pattern="\d{3}" value="{{ form.initial.digits2|default_if_none:'' }}" placeholder="969" required>
+                                <span class="separator mx-1">-</span>
+                                <div class="digits3-container ms-2 position-relative">
                                     <span class="iran-label position-absolute">ایران</span>
+                                    <input type="text" name="digits3" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" value="{{ form.initial.digits3|default_if_none:'' }}" placeholder="53" required>
                                 </div>
-                                <span class="separator mx-1">-</span>
-                                <input type="text" name="digits2" class="form-control digits2 no-spinner me-2" maxlength="3" pattern="\d{3}" placeholder="123" value="{{ form.initial.digits2|default:'' }}" required>
-                                <span class="separator mx-1">-</span>
-                                {{ form.persian_letter }}
-                                <span class="separator mx-1">-</span>
-                                <input type="text" name="digits3" class="form-control digits3 no-spinner" maxlength="2" pattern="\d{2}" placeholder="45" value="{{ form.initial.digits3|default:'' }}" required>
-                                <input type="hidden" name="license_plate" class="license-plate-hidden" value="{{ form.initial.license_plate|default:'' }}">
+                                <input type="hidden" name="license_plate" class="license-plate-hidden" value="{{ car.license_plate }}">
                             </div>
+                            <div class="invalid-feedback d-block mt-1">لطفاً پلاک خودرو را کامل وارد کنید</div>
                         </div>
                         <!-- شماره پلاک راننده -->
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">شماره پلاک راننده/آورنده</label>
-                            <div class="iranian-license-plate d-flex align-items-center">
-                                <div class="flag me-2"></div>
-                                <div class="digits1-container me-2 position-relative">
-                                    <input type="text" name="driver_digits1" class="form-control digits1 no-spinner" maxlength="2" pattern="\d{2}" placeholder="12" value="{{ form.initial.driver_digits1|default:'' }}" required>
+                            <label class="form-label fw-bold text-muted text-end d-block">شماره پلاک راننده/آورنده</label>
+                            <div class="iranian-license-plate d-flex align-items-center" dir="ltr">
+                                <div class="flag ms-2"></div>
+                                <input type="text" name="driver_digits1" class="form-control modern-input no-spinner uniform-size me-2" maxlength="2" pattern="\d{2}" value="{{ form.initial.driver_digits1|default_if_none:'' }}" placeholder="33" required>
+                                <span class="separator mx-1">-</span>
+                                <select name="driver_persian_letter" class="form-select modern-select uniform-size me-2" required>
+                                    <option value="" disabled>-- انتخاب کنید --</option>
+                                    {% for char in "الف ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی" %}
+                                        <option value="{{ char }}" {% if char == form.initial.driver_persian_letter %}selected{% endif %}>{{ char }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="separator mx-1">-</span>
+                                <input type="text" name="driver_digits2" class="form-control modern-input no-spinner uniform-size me-2" maxlength="3" pattern="\d{3}" value="{{ form.initial.driver_digits2|default_if_none:'' }}" placeholder="787" required>
+                                <span class="separator mx-1">-</span>
+                                <div class="digits3-container me-2 position-relative">
                                     <span class="iran-label position-absolute">ایران</span>
+                                    <input type="text" name="driver_digits3" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" value="{{ form.initial.driver_digits3|default_if_none:'' }}" placeholder="22" required>
                                 </div>
-                                <span class="separator mx-1">-</span>
-                                <input type="text" name="driver_digits2" class="form-control digits2 no-spinner me-2" maxlength="3" pattern="\d{3}" placeholder="123" value="{{ form.initial.driver_digits2|default:'' }}" required>
-                                <span class="separator mx-1">-</span>
-                                {{ form.driver_persian_letter }}
-                                <span class="separator mx-1">-</span>
-                                <input type="text" name="driver_digits3" class="form-control digits3 no-spinner" maxlength="2" pattern="\d{2}" placeholder="45" value="{{ form.initial.driver_digits3|default:'' }}" required>
-                                <input type="hidden" name="driver_license_plate" class="driver-license-plate-hidden" value="{{ form.initial.driver_license_plate|default:'' }}">
+                                <input type="hidden" name="driver_license_plate" class="driver-license-plate-hidden" value="{{ car.driver_license_plate }}">
                             </div>
+                            <div class="invalid-feedback d-block mt-1">لطفاً پلاک راننده را کامل وارد کنید</div>
                         </div>
                     </div>
+
                     <!-- بقیه فیلدها -->
-                    <div class="row g-3">
+                    <div class="row g-4">
                         {% for field in form %}
-                            {% if field.name != 'license_plate' and field.name != 'driver_license_plate' and field.name != 'persian_letter' and field.name != 'driver_persian_letter' %}
+                            {% if field.name != 'license_plate' and field.name != 'driver_license_plate' %}
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">{{ field.label }}</label>
-                                    {{ field }}
+                                    <label class="form-label fw-bold text-muted text-end d-block">{{ field.label }}</label>
+                                    {{ field|add_class:"form-control modern-input"|attr:"required" }}
                                     {% if field.errors %}
-                                        <div class="text-danger">{{ field.errors }}</div>
+                                        <div class="text-danger mt-1">{{ field.errors }}</div>
                                     {% endif %}
                                 </div>
                             {% endif %}
                         {% endfor %}
                     </div>
-                    <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-primary btn-submit">ذخیره تغییرات</button>
-                    </div>
-                    <div class="text-center mt-3">
-                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary">بازگشت</a>
+
+                    <!-- دکمه‌ها -->
+                    <div class="d-flex justify-content-center gap-3 mt-5">
+                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره تغییرات</button>
+                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- استایل‌های سفارشی -->
+    <style>
+        .modern-card {
+            border: none;
+            border-radius: 15px;
+            background: #ffffff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .modern-input, .modern-select {
+            border-radius: 10px;
+            border: 1px solid #6c757d;
+            padding: 12px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-input:focus, .modern-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+        .iranian-license-plate {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+        .flag {
+            width: 40px;
+            height: 25px;
+            background: url('{% static "images/iran-flag.png" %}') no-repeat center;
+            background-size: cover;
+        }
+        .digits3-container {
+            width: 70px;
+        }
+        .iran-label {
+            top: -8px;
+            right: 50%;
+            transform: translateX(50%);
+            background: #fff;
+            padding: 0 5px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .separator {
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+        .no-spinner::-webkit-inner-spin-button, .no-spinner::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .no-spinner {
+            -moz-appearance: textfield;
+        }
+        .uniform-size {
+            width: 70px;
+            text-align: center;
+        }
+        .modern-select.uniform-size {
+            width: 90px;
+        }
+        .modern-btn {
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .text-primary {
+            color: #007bff !important;
+        }
+    </style>
+
+    <!-- انیمیشن‌ها -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- اسکریپت‌ها -->
     <script>
         $(document).ready(function() {
             $('.persian-date').persianDatepicker({
@@ -89,30 +194,27 @@
                 }
             });
 
-            $('#car-entry-form').on('submit', function(e) {
+            $('#car-edit-form').on('submit', function(e) {
                 var digits1 = $('input[name="digits1"]').val();
-                var digits2 = $('input[name="digits2"]').val();
                 var persian_letter = $('select[name="persian_letter"]').val();
+                var digits2 = $('input[name="digits2"]').val();
                 var digits3 = $('input[name="digits3"]').val();
-                var license_plate = digits1 + ' (ایران) - ' + digits2 + ' - ' + persian_letter + ' - ' + digits3;
+                var license_plate = digits1 + ' - ' + persian_letter + ' - ' + digits2 + ' - ایران ' + digits3;
                 $('.license-plate-hidden').val(license_plate);
-                console.log('Hidden input value (car): ', license_plate);
 
                 var driver_digits1 = $('input[name="driver_digits1"]').val();
-                var driver_digits2 = $('input[name="driver_digits2"]').val();
                 var driver_persian_letter = $('select[name="driver_persian_letter"]').val();
+                var driver_digits2 = $('input[name="driver_digits2"]').val();
                 var driver_digits3 = $('input[name="driver_digits3"]').val();
-                var driver_license_plate = driver_digits1 + ' (ایران) - ' + driver_digits2 + ' - ' + driver_persian_letter + ' - ' + driver_digits3;
+                var driver_license_plate = driver_digits1 + ' - ' + driver_persian_letter + ' - ' + driver_digits2 + ' - ایران ' + driver_digits3;
                 $('.driver-license-plate-hidden').val(driver_license_plate);
-                console.log('Hidden input value (driver): ', driver_license_plate);
             });
 
-            // اعتبارسنجی فرم
-            (function() {
+            (function () {
                 'use strict';
                 var forms = document.querySelectorAll('.needs-validation');
-                Array.prototype.slice.call(forms).forEach(function(form) {
-                    form.addEventListener('submit', function(event) {
+                Array.prototype.slice.call(forms).forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
                         if (!form.checkValidity()) {
                             event.preventDefault();
                             event.stopPropagation();

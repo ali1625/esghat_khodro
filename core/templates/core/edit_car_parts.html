@@ -1,46 +1,182 @@
 {% extends 'core/base.html' %}
+{% load static widget_tweaks %}
 {% block title %}ویرایش قطعات{% endblock %}
 {% block content %}
     <div class="form-container">
-        <div class="card form-card">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">ویرایش قطعات: {{ car.acceptance_number }}</h2>
+        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4 fw-bold text-primary">ویرایش قطعات: {{ car.acceptance_number }}</h2>
+
+                <!-- پیام‌ها -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- فرم -->
                 <form method="post" class="needs-validation" novalidate>
                     {% csrf_token %}
-                    <div class="row g-3">
+                    <div class="row g-4">
+                        <!-- بقیه فیلدها (به جز موارد خاص) -->
                         {% for field in form %}
-                            {% if field.name != 'plate_description' %}
+                            {% if field.name not in 'plate_status plate_description gas_cylinder cabin_percentage weight' %}
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">{{ field.label }}</label>
-                                    {{ field }}
+                                    <div class="d-flex align-items-center">
+                                        {% if field.field.widget.input_type == 'checkbox' %}
+                                            <label class="toggle-btn-label {% if field.value %}active{% endif %}" for="{{ field.id_for_label }}">
+                                                {{ field.label }}
+                                                {{ field|add_class:"toggle-btn-input"|attr:"required" }}
+                                            </label>
+                                        {% else %}
+                                            <label class="form-label fw-bold text-muted me-3 flex-shrink-0">{{ field.label }}</label>
+                                            {{ field|add_class:"form-control modern-input"|attr:"required" }}
+                                        {% endif %}
+                                    </div>
                                     {% if field.errors %}
-                                        <div class="text-danger">{{ field.errors }}</div>
+                                        <div class="text-danger mt-1 text-end">{{ field.errors }}</div>
                                     {% endif %}
                                 </div>
                             {% endif %}
                         {% endfor %}
-                    </div>
+
+                        <!-- فیلدهای کپسول، درصد اتاق، وزن -->
+                        {% for field in form %}
+                            {% if field.name in 'gas_cylinder cabin_percentage weight' %}
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <label class="form-label fw-bold text-muted me-3 flex-shrink-0">{{ field.label }}</label>
+                                        {{ field|add_class:"form-control small-input"|attr:"required" }}
+                                    </div>
+                                    {% if field.errors %}
+                                        <div class="text-danger mt-1 text-end">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
                     <!-- توضیحات پلاک پایین‌تر و توی کادر -->
                     <div class="mt-4">
-                        <label class="form-label fw-bold">توضیحات پلاک</label>
-                        <div class="card p-3">
-                            {{ form.plate_description }}
+                        <label class="form-label fw-bold text-muted d-block text-end mb-2">توضیحات پلاک</label>
+                        <div class="card p-3 rounded border" style="border-color: #6c757d;">
+                            {{ form.plate_description|add_class:"form-control large-input"|attr:"style:width: 100%;" }}
                             {% if form.plate_description.errors %}
-                                <div class="text-danger">{{ form.plate_description.errors }}</div>
+                                <div class="text-danger mt-1 text-end">{{ form.plate_description.errors }}</div>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-primary btn-submit">ذخیره تغییرات</button>
-                    </div>
-                    <div class="text-center mt-3">
-                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary">بازگشت</a>
+
+                    <!-- دکمه‌ها -->
+                    <div class="d-flex justify-content-center gap-3 mt-5">
+                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره تغییرات</button>
+                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
+    <!-- استایل‌های سفارشی -->
+    <style>
+        .modern-card {
+            border: none;
+            border-radius: 15px;
+            background: #ffffff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .modern-input {
+            border-radius: 10px;
+            border: 1px solid #6c757d;
+            padding: 12px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            flex-grow: 1;
+        }
+        .modern-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+        .small-input {
+            width: 100px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #6c757d; /* خاکستری */
+            flex-grow: 0;
+        }
+        .small-select {
+            width: 120px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #6c757d; /* خاکستری */
+            flex-grow: 0;
+        }
+        .large-input {
+            border-radius: 8px;
+            border: 1px solid #6c757d; /* خاکستری */
+            padding: 8px;
+        }
+        .toggle-btn-label {
+            display: inline-block;
+            width: 150px;
+            padding: 10px 15px;
+            background: #e9ecef;
+            border: 1px solid #6c757d;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+            color: #495057;
+        }
+        .toggle-btn-label:hover {
+            background: #dee2e6;
+        }
+        .toggle-btn-label.active {
+            background: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+        .toggle-btn-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .info-section {
+            background: #f8f9fa;
+            border: 1px solid #6c757d;
+            border-radius: 10px;
+        }
+        .modern-btn {
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .text-primary {
+            color: #007bff !important;
+        }
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <!-- انیمیشن‌ها -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- اسکریپت‌ها -->
     <script>
         (function () {
             'use strict';
@@ -57,5 +193,16 @@
                 });
             }, false);
         })();
+
+        document.querySelectorAll('.toggle-btn-input').forEach(function(input) {
+            input.addEventListener('change', function() {
+                var label = this.closest('.toggle-btn-label');
+                if (this.checked) {
+                    label.classList.add('active');
+                } else {
+                    label.classList.remove('active');
+                }
+            });
+        });
     </script>
 {% endblock %}

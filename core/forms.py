@@ -4,13 +4,37 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import CarEntry, CarParts, CarCosts, UserProfile
 from jdatetime import datetime as jdatetime
+import re
+
+class AdminChangePasswordForm(forms.Form):
+    new_password = forms.CharField(
+        label="رمز عبور جدید",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        min_length=8,
+        help_text="حداقل 8 کاراکتر"
+    )
+    confirm_password = forms.CharField(
+        label="تأیید رمز عبور جدید",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        min_length=8
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get("new_password")
+        confirm_password = cleaned_data.get("confirm_password")
+        if new_password and confirm_password and new_password != confirm_password:
+            raise forms.ValidationError("رمزهای عبور مطابقت ندارند.")
+        return cleaned_data
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['first_name', 'last_name']
-        labels = {'first_name': 'نام', 'last_name': 'نام خانوادگی'}
-
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 class CustomUserCreationForm(UserCreationForm):
     first_name = forms.CharField(max_length=50, label='نام')
     last_name = forms.CharField(max_length=50, label='نام خانوادگی')
@@ -30,17 +54,107 @@ class CustomUserCreationForm(UserCreationForm):
             )
         return user
 
+class AdminUserCreationForm(forms.ModelForm):
+    first_name = forms.CharField(
+        label="نام",
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    last_name = forms.CharField(
+        label="نام خانوادگی",
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    national_code = forms.CharField(
+        label="کد ملی",
+        max_length=10,
+        min_length=10,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        help_text="کد ملی باید 10 رقم باشد."
+    )
+    phone_number = forms.CharField(
+        label="شماره موبایل",
+        max_length=11,
+        min_length=11,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        help_text="شماره موبایل باید 11 رقم باشد (مثل 09123456789)."
+    )
+
+    class Meta:
+        model = User
+        fields = ['username']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean_national_code(self):
+        national_code = self.cleaned_data['national_code']
+        if not national_code.isdigit() or len(national_code) != 10:
+            raise forms.ValidationError("کد ملی باید 10 رقم باشد.")
+        return national_code
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data['phone_number']
+        if not phone_number.isdigit() or len(phone_number) != 11 or not phone_number.startswith('09'):
+            raise forms.ValidationError("شماره موبایل باید 11 رقم باشد و با 09 شروع شود.")
+        return phone_number
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['national_code'])  # رمز اولیه = کد ملی
+        if commit:
+            user.save()
+            UserProfile.objects.create(
+                user=user,
+                first_name=self.cleaned_data['first_name'],
+                last_name=self.cleaned_data['last_name'],
+                national_code=self.cleaned_data['national_code'],
+                phone_number=self.cleaned_data['phone_number'],
+                must_change_password=True  # اجبار به تغییر رمز
+            )
+        return user
+
+class CustomPasswordChangeForm(forms.Form):
+    new_password = forms.CharField(
+        label="رمز عبور جدید",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        min_length=8,
+        help_text="رمز عبور باید حداقل 8 کاراکتر داشته باشد و شامل حروف بزرگ و کوچک باشد."
+    )
+    confirm_password = forms.CharField(
+        label="تأیید رمز عبور جدید",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        min_length=8
+    )
+
+    def clean_new_password(self):
+        password = self.cleaned_data['new_password']
+        if len(password) < 8:
+            raise forms.ValidationError("رمز عبور باید حداقل 8 کاراکتر باشد.")
+        if not re.search(r'[A-Z]', password):
+            raise forms.ValidationError("رمز عبور باید حداقل یک حرف بزرگ داشته باشد.")
+        if not re.search(r'[a-z]', password):
+            raise forms.ValidationError("رمز عبور باید حداقل یک حرف کوچک داشته باشد.")
+        return password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get("new_password")
+        confirm_password = cleaned_data.get("confirm_password")
+        if new_password and confirm_password and new_password != confirm_password:
+            raise forms.ValidationError("رمزهای عبور مطابقت ندارند.")
+        return cleaned_data
 class CarEntryForm(forms.ModelForm):
-    persian_letter = forms.ChoiceField(
-        label='حرف فارسی (خودرو)',
-        choices=[(letter, letter) for letter in 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'],
-        required=True
-    )
-    driver_persian_letter = forms.ChoiceField(
-        label='حرف فارسی (آورنده)',
-        choices=[(letter, letter) for letter in 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'],
-        required=True
-    )
+    #persian_letter = forms.ChoiceField(
+     #   label='حرف فارسی (خودرو)',
+      #  choices=[(letter, letter) for letter in 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'],
+       # required=True
+    #)
+    #driver_persian_letter = forms.ChoiceField(
+     #   label='حرف فارسی (آورنده)',
+      #  choices=[(letter, letter) for letter in 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'],
+       # required=True
+    #ُ)
     delivery_date = forms.CharField(
         label='تاریخ تحویل',
         widget=forms.TextInput(attrs={'class': 'form-control persian-date', 'placeholder': 'مثال: 1403/12/14'}),
@@ -56,7 +170,7 @@ class CarEntryForm(forms.ModelForm):
     class Meta:
         model = CarEntry
         fields = ['parking_number', 'delivery_date', 'car_type', 'license_plate', 'owner_name', 'engine_number', 
-                  'chassis_number', 'has_cabin_plate', 'driver_name', 'driver_license_plate', 'driver_phone']  # accepted_by حذف شد
+                  'chassis_number', 'driver_name', 'driver_license_plate', 'driver_phone', 'has_cabin_plate']  # accepted_by حذف شد
         widgets = {
             'car_type': forms.TextInput(attrs={'class': 'form-control'}),
             'license_plate': forms.TextInput(attrs={'type': 'hidden'}),
@@ -103,34 +217,36 @@ class CarEntryForm(forms.ModelForm):
         if not (digits1 and digits2 and digits3 and persian_letter):
             if license_plate:
                 parts = license_plate.split(' - ')
-                if len(parts) == 4:
-                    digits1 = parts[0].split(' ')[0]
-                    digits2 = parts[1]
-                    persian_letter = parts[2]
-                    digits3 = parts[3]
+                if len(parts) == 4 and 'ایران' in parts[3]:
+                    digits1 = parts[0]
+                    persian_letter = parts[1]
+                    digits2 = parts[2]
+                    digits3 = parts[3].replace('ایران ', '')
         if not (driver_digits1 and driver_digits2 and driver_digits3 and driver_persian_letter):
             if driver_license_plate:
                 parts = driver_license_plate.split(' - ')
-                if len(parts) == 4:
-                    driver_digits1 = parts[0].split(' ')[0]
-                    driver_digits2 = parts[1]
-                    driver_persian_letter = parts[2]
-                    driver_digits3 = parts[3]
+                if len(parts) == 4 and 'ایران' in parts[3]:
+                    driver_digits1 = parts[0]
+                    driver_persian_letter = parts[1]
+                    driver_digits2 = parts[2]
+                    driver_digits3 = parts[3].replace('ایران ', '')
 
         if not (digits1.isdigit() and len(digits1) == 2 and
-                digits2.isdigit() and len(digits2) == 3 and
                 persian_letter in 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی' and
+                digits2.isdigit() and len(digits2) == 3 and
                 digits3.isdigit() and len(digits3) == 2):
-            raise ValidationError("فرمت پلاک خودرو باید عدد دو رقمی (بالا: ایران)، خط، عدد سه رقمی، خط، حرف فارسی، خط، عدد دو رقمی باشد (مثال: 12 (ایران) - 123 - الف - 45)")
+            raise ValidationError(
+                "فرمت پلاک خودرو باید عدد دو رقمی، خط، حرف فارسی، خط، عدد سه رقمی، خط، ایران عدد دو رقمی باشد (مثال: 41 - پ - 969 - ایران 53)")
 
         if not (driver_digits1.isdigit() and len(driver_digits1) == 2 and
-                driver_digits2.isdigit() and len(driver_digits2) == 3 and
                 driver_persian_letter in 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی' and
+                driver_digits2.isdigit() and len(driver_digits2) == 3 and
                 driver_digits3.isdigit() and len(driver_digits3) == 2):
-            raise ValidationError("فرمت پلاک آورنده باید عدد دو رقمی (بالا: ایران)، خط، عدد سه رقمی، خط، حرف فارسی، خط، عدد دو رقمی باشد (مثال: 12 (ایران) - 123 - الف - 45)")
+            raise ValidationError(
+                "فرمت پلاک آورنده باید عدد دو رقمی، خط، حرف فارسی، خط، عدد سه رقمی، خط، ایران عدد دو رقمی باشد (مثال: 33 - ت - 787 - ایران 22)")
 
-        cleaned_data['license_plate'] = f"{digits1} (ایران) - {digits2} - {persian_letter} - {digits3}"
-        cleaned_data['driver_license_plate'] = f"{driver_digits1} (ایران) - {driver_digits2} - {driver_persian_letter} - {driver_digits3}"
+        cleaned_data['license_plate'] = f"{digits1} - {persian_letter} - {digits2} - ایران {digits3}"
+        cleaned_data['driver_license_plate'] = f"{driver_digits1} - {driver_persian_letter} - {driver_digits2} - ایران {driver_digits3}"
 
         return cleaned_data
 
@@ -147,7 +263,7 @@ class CarPartsForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['car', 'recorded_by', 'recorded_at']  # اینا توی ویو پر می‌شن
         widgets = {
-            'cabin_percentage': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100}),
+
             'hood': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'radiator': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'ecu': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -178,14 +294,16 @@ class CarPartsForm(forms.ModelForm):
             'injector': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'glass': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'ac': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'gas_cylinder': forms.Select(attrs={'class': 'form-control'}),
+
             'brake_booster': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'gas_cylinder': forms.Select(attrs={'class': 'form-control'}),
+            'cabin_percentage': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100}),
             'weight': forms.NumberInput(attrs={'class': 'form-control'}),
             'plate_status': forms.Select(attrs={'class': 'form-control'}),
             'plate_description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
         labels = {
-            'cabin_percentage': 'درصد اتاق',
+
             'hood': 'درب موتور',
             'radiator': 'رادیاتور',
             'ecu': 'ایسیو',
@@ -216,8 +334,10 @@ class CarPartsForm(forms.ModelForm):
             'injector': 'انژکتور و سوزن انژکتور',
             'glass': 'شیشه',
             'ac': 'کولر',
-            'gas_cylinder': 'کپسول',
+
             'brake_booster': 'پوستر ترمز',
+            'gas_cylinder': 'کپسول',
+            'cabin_percentage': 'درصد اتاق',
             'weight': 'وزن',
             'plate_status': 'وضعیت پلاک',
             'plate_description': 'توضیحات پلاک',
@@ -256,3 +376,11 @@ class CarCostsForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+class SearchLogForm(forms.Form):
+    acceptance_number = forms.CharField(
+        max_length=9,
+        required=False,
+        label="شماره پذیرش",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'شماره پذیرش را وارد کنید'})
+    )

@@ -1,0 +1,88 @@
+{% extends 'core/base.html' %}
+{% block title %}ثبت کاربر جدید{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4 fw-bold text-primary">ثبت کاربر جدید</h2>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.username.label_tag }}
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.first_name.label_tag }}
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.last_name.label_tag }}
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger">{{ form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.national_code.label_tag }}
+                        {{ form.national_code }}
+                        <small class="form-text text-muted">{{ form.national_code.help_text }}</small>
+                        {% if form.national_code.errors %}
+                            <div class="text-danger">{{ form.national_code.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.phone_number.label_tag }}
+                        {{ form.phone_number }}
+                        <small class="form-text text-muted">{{ form.phone_number.help_text }}</small>
+                        {% if form.phone_number.errors %}
+                            <div class="text-danger">{{ form.phone_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary modern-btn">ثبت کاربر</button>
+                        <a href="{% url 'user_management' %}" class="btn btn-secondary modern-btn ms-2">بازگشت</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modern-card {
+            border: none;
+            border-radius: 15px;
+            background: #ffffff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .modern-btn {
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+{% endblock %}

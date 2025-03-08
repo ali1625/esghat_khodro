@@ -1,72 +1,152 @@
 {% extends 'core/base.html' %}
+{% load mathfilters %}
 {% block title %}صفحه اصلی{% endblock %}
 {% block content %}
     <div class="home-container">
-        <h2 class="mb-4 text-center">خوش آمدید، {{ user.userprofile.first_name }} {{ user.userprofile.last_name }}</h2>
-        <div class="row justify-content-center mb-5">
-            <div class="col-md-4 mb-3">
-                <div class="home-card">
-                    <a href="{% url 'add_car_entry_step1' %}" class="btn btn-custom btn-lg w-100 py-4">
-                        <i class="fas fa-car fa-2x mb-2"></i>
-                        <h4>ثبت ورود خودرو</h4>
-                        <p style="font-size: small;">مرحله اول: اطلاعات خودرو و آورنده</p>
+        <h2 class="mb-5 text-center fw-bold text-primary animate__animated animate__fadeIn">خوش آمدید، {{ user.userprofile.first_name }} {{ user.userprofile.last_name }}</h2>
+        {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+        <!-- کارت‌ها -->
+        <div class="row justify-content-center mb-5 g-4">
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="home-card modern-card shadow-lg animate__animated animate__zoomIn">
+                    <a href="{% url 'add_car_entry_step1' %}" class="btn btn-custom btn-lg w-100 py-4 text-white">
+                        <i class="bi bi-car-front-fill fs-1 mb-3"></i>
+                        <h4 class="fw-bold">ثبت ورود خودرو</h4>
+                        <p class="small text-light opacity-75">مرحله اول: اطلاعات خودرو و آورنده</p>
                     </a>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
-                <div class="card home-card">
-                    <a href="{% url 'select_car_for_parts' %}" class="btn btn-custom btn-lg w-100 py-4">
-                        <i class="fas fa-cogs fa-2x mb-2"></i>
-                        <h4>ثبت قطعات</h4>
-                        <p style="font-size: small;">مرحله دوم: قطعات و متعلقات</p>
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="home-card modern-card shadow-lg animate__animated animate__zoomIn" style="animation-delay: 0.2s;">
+                    <a href="{% url 'select_car_for_parts' %}" class="btn btn-custom btn-lg w-100 py-4 text-white">
+                        <i class="bi bi-gear-wide-connected fs-1 mb-3"></i>
+                        <h4 class="fw-bold">ثبت قطعات</h4>
+                        <p class="small text-light opacity-75">مرحله دوم: قطعات و متعلقات</p>
                     </a>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
-                <div class="card home-card">
-                    <a href="{% url 'select_car_for_costs' %}" class="btn btn-custom btn-lg w-100 py-4">
-                        <i class="fas fa-dollar-sign fa-2x mb-2"></i>
-                        <h4>ثبت هزینه‌ها</h4>
-                        <p style="font-size: small;">مرحله سوم: هزینه‌ها و اسناد</p>
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="home-card modern-card shadow-lg animate__animated animate__zoomIn" style="animation-delay: 0.4s;">
+                    <a href="{% url 'select_car_for_costs' %}" class="btn btn-custom btn-lg w-100 py-4 text-white">
+                        <i class="bi bi-currency-dollar fs-1 mb-3"></i>
+                        <h4 class="fw-bold">ثبت هزینه‌ها</h4>
+                        <p class="small text-light opacity-75">مرحله سوم: هزینه‌ها و اسناد</p>
                     </a>
                 </div>
             </div>
         </div>
 
-        <h3 class="mb-3 text-center">آخرین خودروهای ثبت‌شده</h3>
-        <div class="card-body">
-            <div class="card-body">
+        <!-- جدول -->
+        <h3 class="mb-4 text-center fw-bold text-muted">آخرین خودروهای ثبت‌شده</h3>
+        <div class="card modern-table-card shadow-sm">
+            <div class="card-body p-4">
                 {% if recent_cars %}
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>شماره پذیرش</th>
-                                <th>نوع خودرو</th>
-                                <th>نام مالک</th>
-                                <th>تاریخ پذیرش</th>
-                                <th>جزئیات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for car in recent_cars %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle">
+                            <thead class="table-dark">
                                 <tr>
-                                    <td>{{ car.acceptance_number }}</td>
-                                    <td>{{ car.car_type }}</td>
-                                    <td>{{ car.owner_name }}</td>
-                                    <td>{{ car.accepted_at }}</td>
-                                    <td><a href="{% url 'car_details' car.acceptance_number %}" class="btn btn-info btn-sm">جزئیات</a></td>
+                                    <th>شماره پذیرش</th>
+                                    <th>نوع خودرو</th>
+                                    <th>نام مالک</th>
+                                    <th>تاریخ پذیرش</th>
+                                    <th>جزئیات</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% for car in recent_cars %}
+                                    <tr class="animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s;">
+                                        <td>{{ car.acceptance_number }}</td>
+                                        <td>{{ car.car_type }}</td>
+                                        <td>{{ car.owner_name }}</td>
+                                        <td>{{ car.accepted_at }}</td>
+                                        <td>
+                                            <a href="{% url 'car_details' car.acceptance_number %}" class="btn btn-info btn-sm modern-btn">
+                                                <i class="bi bi-eye me-1"></i> جزئیات
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 {% else %}
-                    <p class="text-center">هنوز خودرویی ثبت نشده است.</p>
+                    <p class="text-center text-muted">هنوز خودرویی ثبت نشده است.</p>
                 {% endif %}
             </div>
         </div>
 
-        <div class="text-center mt-4">
-            <a href="{% url 'registration_list' %}" class="btn btn-secondary">مشاهده لیست ثبت</a>
+        <!-- دکمه لیست ثبت -->
+        <div class="text-center mt-5">
+            <a href="{% url 'registration_list' %}" class="btn btn-outline-primary modern-btn px-4 py-2">مشاهده لیست ثبت</a>
         </div>
     </div>
+
+    <!-- استایل‌های سفارشی -->
+    <style>
+        .home-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .modern-card {
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(225deg, #0f647d 0%, #0d5469 100%);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(225deg, #052f3c 0%, #052832 100%);
+        }
+        .modern-card a {
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .modern-table-card {
+            border: none;
+            border-radius: 15px;
+            background: #fff;
+            transition: box-shadow 0.3s ease;
+        }
+        .modern-table-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .table th {
+            background: #343a40;
+            color: #fff;
+            border: none;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .modern-btn {
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .text-primary {
+            color: #007bff !important;
+        }
+    </style>
+
+    <!-- انیمیشن‌ها -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 {% endblock %}

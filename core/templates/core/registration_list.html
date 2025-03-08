@@ -1,105 +1,162 @@
 {% extends 'core/base.html' %}
+{% load static widget_tweaks %}
 {% block title %}لیست ثبت{% endblock %}
 {% block content %}
     <div class="form-container">
-        <div class="card form-card">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">لیست ثبت</h2>
+        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4 fw-bold text-primary">لیست ثبت</h2>
+
+                <!-- پیام‌ها -->
                 {% if messages %}
                     {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                     {% endfor %}
                 {% endif %}
+
+                <!-- فرم جستجو -->
                 <form method="get" class="mb-4">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">شماره پذیرش</label>
-                            <input type="text" name="acceptance_number" class="form-control" value="{{ acceptance_number }}">
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-6">
+                            <input type="text" name="q" class="form-control modern-input" placeholder="شماره پذیرش، پلاک، نوع خودرو یا ..." value="{{ request.GET.q }}">
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">شماره پلاک</label>
-                            <input type="text" name="license_plate" class="form-control" value="{{ license_plate }}">
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary modern-btn w-100">
+                                <i class="bi bi-search me-2"></i>جستجو
+                            </button>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">شماره پارکینگ</label>
-                            <input type="text" name="parking_number" class="form-control" value="{{ parking_number }}">
+                    </div>
+
+                    <!-- جستجوی پیشرفته -->
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <input type="text" name="acceptance_number" class="form-control modern-input" placeholder="شماره پذیرش" value="{{ request.GET.acceptance_number }}">
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">از تاریخ</label>
-                            <input type="text" name="start_date" class="form-control persian-date" value="{{ start_date }}" placeholder="مثال: 1403/12/15">
+                        <div class="col-md-3">
+                            <input type="text" name="license_plate" class="form-control modern-input" placeholder="شماره انتظامی" value="{{ request.GET.license_plate }}">
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">تا تاریخ</label>
-                            <input type="text" name="end_date" class="form-control persian-date" value="{{ end_date }}" placeholder="مثال: 1403/12/15">
+                        <div class="col-md-3">
+                            <input type="text" name="parking_number" class="form-control modern-input" placeholder="شماره پارکینگ" value="{{ request.GET.parking_number }}">
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">وضعیت قطعات</label>
-                            <select name="has_parts" class="form-control">
-                                <option value="" {% if not has_parts %}selected{% endif %}>همه</option>
-                                <option value="yes" {% if has_parts == 'yes' %}selected{% endif %}>ثبت شده</option>
-                                <option value="no" {% if has_parts == 'no' %}selected{% endif %}>ثبت نشده</option>
+                        <div class="col-md-3">
+                            <input type="text" name="start_date" id="start_date" class="form-control modern-input persian-date" placeholder="از تاریخ (مثال: 1403/12/15)" value="{{ request.GET.start_date }}">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="end_date" id="end_date" class="form-control modern-input persian-date" placeholder="تا تاریخ (مثال: 1403/12/15)" value="{{ request.GET.end_date }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="has_parts" class="form-select modern-select">
+                                <option value="" {% if not request.GET.has_parts %}selected{% endif %}>وضعیت قطعات: همه</option>
+                                <option value="yes" {% if request.GET.has_parts == 'yes' %}selected{% endif %}>ثبت شده</option>
+                                <option value="no" {% if request.GET.has_parts == 'no' %}selected{% endif %}>ثبت نشده</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">وضعیت هزینه‌ها</label>
-                            <select name="has_costs" class="form-control">
-                                <option value="" {% if not has_costs %}selected{% endif %}>همه</option>
-                                <option value="yes" {% if has_costs == 'yes' %}selected{% endif %}>ثبت شده</option>
-                                <option value="no" {% if has_costs == 'no' %}selected{% endif %}>ثبت نشده</option>
+                        <div class="col-md-3">
+                            <select name="has_costs" class="form-select modern-select">
+                                <option value="" {% if not request.GET.has_costs %}selected{% endif %}>وضعیت هزینه‌ها: همه</option>
+                                <option value="yes" {% if request.GET.has_costs == 'yes' %}selected{% endif %}>ثبت شده</option>
+                                <option value="no" {% if request.GET.has_costs == 'no' %}selected{% endif %}>ثبت نشده</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="part_type" class="form-select modern-select">
+                                <option value="" {% if not request.GET.part_type %}selected{% endif %}>نوع قطعه: همه</option>
+                                <option value="hood" {% if request.GET.part_type == 'hood' %}selected{% endif %}>درب موتور</option>
+                                <option value="radiator" {% if request.GET.part_type == 'radiator' %}selected{% endif %}>رادیاتور</option>
+                                <option value="ecu" {% if request.GET.part_type == 'ecu' %}selected{% endif %}>ایسیو</option>
+                                <option value="front_rear_doors" {% if request.GET.part_type == 'front_rear_doors' %}selected{% endif %}>درب جلو و عقب</option>
+                                <option value="wiring" {% if request.GET.part_type == 'wiring' %}selected{% endif %}>سیم‌کشی</option>
+                                <option value="battery_cable" {% if request.GET.part_type == 'battery_cable' %}selected{% endif %}>کابل باطری</option>
+                                <option value="heater" {% if request.GET.part_type == 'heater' %}selected{% endif %}>بخاری</option>
+                                <option value="suspension_spring" {% if request.GET.part_type == 'suspension_spring' %}selected{% endif %}>فنر زیر و بند</option>
+                                <option value="alternator" {% if request.GET.part_type == 'alternator' %}selected{% endif %}>دینام</option>
+                                <option value="wiper_motor" {% if request.GET.part_type == 'wiper_motor' %}selected{% endif %}>موتور برف‌پاک‌کن</option>
+                                <option value="rims_tires" {% if request.GET.part_type == 'rims_tires' %}selected{% endif %}>رینگ و لاستیک</option>
+                                <option value="carburetor" {% if request.GET.part_type == 'carburetor' %}selected{% endif %}>کاربراتور</option>
+                                <option value="starter" {% if request.GET.part_type == 'starter' %}selected{% endif %}>استارت</option>
+                                <option value="gearbox" {% if request.GET.part_type == 'gearbox' %}selected{% endif %}>گیربکس</option>
+                                <option value="differential" {% if request.GET.part_type == 'differential' %}selected{% endif %}>دیفرانسیل</option>
+                                <option value="distributor_coil" {% if request.GET.part_type == 'distributor_coil' %}selected{% endif %}>دلکو و کوئل</option>
+                                <option value="fuel_pump" {% if request.GET.part_type == 'fuel_pump' %}selected{% endif %}>سیفون بنزین</option>
+                                <option value="seats" {% if request.GET.part_type == 'seats' %}selected{% endif %}>صندلی</option>
+                                <option value="front_disc" {% if request.GET.part_type == 'front_disc' %}selected{% endif %}>دیسک چرخ جلو</option>
+                                <option value="battery" {% if request.GET.part_type == 'battery' %}selected{% endif %}>باطری</option>
+                                <option value="steering_box" {% if request.GET.part_type == 'steering_box' %}selected{% endif %}>جعبه فرمان</option>
+                                <option value="bumpers" {% if request.GET.part_type == 'bumpers' %}selected{% endif %}>سپر عقب و جلو</option>
+                                <option value="wheel_drum" {% if request.GET.part_type == 'wheel_drum' %}selected{% endif %}>کاسه چرخ</option>
+                                <option value="driveshaft_cv" {% if request.GET.part_type == 'driveshaft_cv' %}selected{% endif %}>پلوس و گاردان</option>
+                                <option value="fuel_rail" {% if request.GET.part_type == 'fuel_rail' %}selected{% endif %}>ریل سوخت</option>
+                                <option value="trunk_lid" {% if request.GET.part_type == 'trunk_lid' %}selected{% endif %}>درب صندوق</option>
+                                <option value="documents" {% if request.GET.part_type == 'documents' %}selected{% endif %}>سند</option>
+                                <option value="injector" {% if request.GET.part_type == 'injector' %}selected{% endif %}>انژکتور و سوزن انژکتور</option>
+                                <option value="glass" {% if request.GET.part_type == 'glass' %}selected{% endif %}>شیشه</option>
+                                <option value="ac" {% if request.GET.part_type == 'ac' %}selected{% endif %}>کولر</option>
+                                <option value="brake_booster" {% if request.GET.part_type == 'brake_booster' %}selected{% endif %}>پوستر ترمز</option>
                             </select>
                         </div>
                     </div>
-                    <div class="mt-3 text-center">
-                        <button type="submit" class="btn btn-primary">جستجو</button>
-                        <a href="?export=excel" class="btn btn-success ms-2">خروجی اکسل</a>
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">
+                            <i class="bi bi-search me-2"></i>جستجو
+                        </button>
+                        <a href="{% url 'registration_list' %}" class="btn btn-secondary modern-btn px-4 py-2">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>پاک کردن
+                        </a>
+                        <button type="submit" name="export" value="excel" class="btn btn-success modern-btn px-4 py-2">
+                            <i class="bi bi-file-earmark-excel me-2"></i>خروجی اکسل
+                        </button>
                     </div>
                 </form>
+
+                <!-- جدول -->
                 <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
+                    <table class="table table-striped table-hover modern-table">
+                        <thead class="table-dark">
                             <tr>
-                                <th>شماره پذیرش</th>
-                                <th>نوع خودرو</th>
-                                <th>نام مالک</th>
-                                <th>مسئول پذیرش</th>
-                                <th>تاریخ پذیرش</th>
-                                <th>عملیات</th>
+                                <th class="text-end">شماره پذیرش</th>
+                                <th class="text-end">نوع خودرو</th>
+                                <th class="text-end">نام مالک</th>
+                                <th class="text-end">مسئول پذیرش</th>
+                                <th class="text-end">تاریخ پذیرش</th>
+                                <th class="text-end">عملیات</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for car in cars %}
                                 <tr>
-                                    <td>{{ car.acceptance_number }}</td>
-                                    <td>{{ car.car_type }}</td>
-                                    <td>{{ car.owner_name }}</td>
-                                    <td>{{ car.accepted_by }}</td>
-                                    <td>{{ car.accepted_at }}</td>
-                                    <td>
-                                        <a href="{% url 'edit_car_entry' car.acceptance_number %}" class="btn btn-warning btn-sm" title="ویرایش ورود">
+                                    <td class="text-end">{{ car.acceptance_number }}</td>
+                                    <td class="text-end">{{ car.car_type }}</td>
+                                    <td class="text-end">{{ car.owner_name }}</td>
+                                    <td class="text-end">{{ car.accepted_by }}</td>
+                                    <td class="text-end">{{ car.accepted_at }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'edit_car_entry' car.acceptance_number %}" class="btn btn-warning btn-sm me-1" title="ویرایش ورود">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
                                         {% if car.parts %}
-                                            <a href="{% url 'edit_car_parts' car.acceptance_number %}" class="btn btn-warning btn-sm" title="ویرایش قطعات">
+                                            <a href="{% url 'edit_car_parts' car.acceptance_number %}" class="btn btn-warning btn-sm me-1" title="ویرایش قطعات">
                                                 <i class="bi bi-gear"></i>
                                             </a>
                                         {% else %}
-                                            <a href="{% url 'add_car_parts_step2' car.acceptance_number %}" class="btn btn-primary btn-sm" title="ثبت قطعات">
+                                            <a href="{% url 'add_car_parts_step2' car.acceptance_number %}" class="btn btn-primary btn-sm me-1" title="ثبت قطعات">
                                                 <i class="bi bi-plus-circle"></i>
                                             </a>
                                         {% endif %}
                                         {% if car.costs %}
-                                            <a href="{% url 'edit_car_costs' car.acceptance_number %}" class="btn btn-warning btn-sm" title="ویرایش هزینه‌ها">
+                                            <a href="{% url 'edit_car_costs' car.acceptance_number %}" class="btn btn-warning btn-sm me-1" title="ویرایش هزینه‌ها">
                                                 <i class="bi bi-currency-dollar"></i>
                                             </a>
                                         {% else %}
-                                            <a href="{% url 'add_car_costs_step3' car.acceptance_number %}" class="btn btn-primary btn-sm" title="ثبت هزینه‌ها">
+                                            <a href="{% url 'add_car_costs_step3' car.acceptance_number %}" class="btn btn-primary btn-sm me-1" title="ثبت هزینه‌ها">
                                                 <i class="bi bi-currency-dollar"></i>
                                             </a>
-                                        {% endif %}    
-                                            <a href="{% url 'car_details' car.acceptance_number %}" class="btn btn-success btn-sm" title="جزئیات">
-                                                <i class="bi bi-list-ul"></i> 
-                                            </a>
-                                      
+                                        {% endif %}
+                                        <a href="{% url 'car_details' car.acceptance_number %}" class="btn btn-success btn-sm me-1" title="جزئیات">
+                                            <i class="bi bi-list-ul"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             {% empty %}
@@ -110,12 +167,136 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- صفحه‌بندی -->
+                {% if cars.has_other_pages %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if cars.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ cars.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                                        <span aria-hidden="true">«</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">«</span>
+                                </li>
+                            {% endif %}
+
+                            {% for num in cars.paginator.page_range %}
+                                {% if cars.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > cars.number|add:-3 and num < cars.number|add:3 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if cars.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ cars.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                                        <span aria-hidden="true">»</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">»</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- استایل‌های سفارشی -->
+    <style>
+        .modern-card {
+            border: none;
+            border-radius: 15px;
+            background: #ffffff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .modern-input, .modern-select {
+            border-radius: 10px;
+            border: 1px solid #6c757d;
+            padding: 12px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+            background: #f8f9fa;
+        }
+        .modern-input:focus, .modern-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+        .modern-btn {
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .text-primary {
+            color: #007bff !important;
+        }
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .modern-table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .table-dark {
+            background-color: #343a40;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f1f3f5;
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.875rem;
+        }
+    </style>
+
+    <!-- انیمیشن‌ها و آیکون‌ها -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- تقویم جلالی -->
+    <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+    <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+
+    <!-- اسکریپت تقویم -->
     <script>
-        $(document).ready(function() {
-            $('.persian-date').persianDatepicker({
+        document.addEventListener('DOMContentLoaded', function () {
+            const startDatePicker = new PersianDatepicker(document.getElementById('start_date'), {
+                format: 'YYYY/MM/DD',
+                initialValue: false,
+                autoClose: true,
+                calendar: {
+                    persian: {
+                        locale: 'fa',
+                        showHint: true
+                    }
+                }
+            });
+
+            const endDatePicker = new PersianDatepicker(document.getElementById('end_date'), {
                 format: 'YYYY/MM/DD',
                 initialValue: false,
                 autoClose: true,

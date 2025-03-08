@@ -3,14 +3,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from jdatetime import datetime as jdatetime
 from django.contrib import messages
 from django.db.models import Q
-from .models import CarEntry
-from .forms import CarEntryForm, CarPartsForm, CarCostsForm, CustomUserCreationForm
+from django.db import models
+from .models import CarEntry, CarParts, EditLog, UserProfile
+from .forms import CarEntryForm, CarPartsForm, CarCostsForm, CustomUserCreationForm, SearchLogForm
+from .forms import AdminChangePasswordForm, UserProfileForm
+from django.contrib.auth import update_session_auth_hash
+from .forms import AdminChangePasswordForm, UserProfileForm, AdminUserCreationForm, CustomPasswordChangeForm
 from django.http import HttpResponse
 from openpyxl import Workbook
 from reportlab.pdfgen import canvas
@@ -19,6 +24,7 @@ from reportlab.pdfbase import pdfmetrics
 from django.db import IntegrityError
 from reportlab.pdfbase.ttfonts import TTFont
 from io import BytesIO
+import re
 
 
 def home(request):
@@ -49,11 +55,11 @@ def is_admin(user):
 @login_required
 @user_passes_test(is_admin)
 def user_management(request):
-    users = User.objects.all()
+    users = User.objects.all().order_by('-date_joined')
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         action = request.POST.get('action')
-        user = User.objects.get(id=user_id)
+        user = get_object_or_404(User, id=user_id)
         if action == 'delete':
             user.delete()
             messages.success(request, 'کاربر با موفقیت حذف شد.')
@@ -65,7 +71,115 @@ def user_management(request):
         return redirect('user_management')
     return render(request, 'core/user_management.html', {'users': users})
 
+@login_required
+@user_passes_test(is_admin)
+def admin_change_password(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        form = AdminChangePasswordForm(request.POST)
+        if form.is_valid():
+            new_password = form.cleaned_data['new_password']
+            user.set_password(new_password)
+            user.save()
+            messages.success(request, f'رمز عبور کاربر {user.username} با موفقیت تغییر کرد.')
+            return redirect('user_management')
+        else:
+            messages.error(request, 'لطفاً خطاها را برطرف کنید.')
+    else:
+        form = AdminChangePasswordForm()
+    return render(request, 'core/admin_change_password.html', {
+        'form': form,
+        'user': user,
+    })
 
+@login_required
+@user_passes_test(is_admin)
+def edit_user_profile(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'پروفایل کاربر {user.username} با موفقیت به‌روزرسانی شد.')
+            return redirect('user_management')
+        else:
+            messages.error(request, 'لطفاً خطاها را برطرف کنید.')
+    else:
+        form = UserProfileForm(instance=profile)
+    return render(request, 'core/edit_user_profile.html', {
+        'form': form,
+        'user': user,
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def add_user(request):
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'کاربر {user.username} با موفقیت ثبت شد. رمز اولیه: {form.cleaned_data["national_code"]}')
+            return redirect('user_management')
+        else:
+            messages.error(request, 'لطفاً خطاها را برطرف کنید.')
+    else:
+        form = AdminUserCreationForm()
+    return render(request, 'core/add_user.html', {'form': form})
+
+@login_required
+def change_password(request):
+    if not hasattr(request.user, 'userprofile') or not request.user.userprofile.must_change_password:
+        return redirect('home')  # اگه نیازی به تغییر رمز نباشه
+    if request.method == 'POST':
+        form = CustomPasswordChangeForm(request.POST)
+        if form.is_valid():
+            request.user.set_password(form.cleaned_data['new_password'])
+            request.user.userprofile.must_change_password = False
+            request.user.userprofile.save()
+            request.user.save()
+            update_session_auth_hash(request, request.user)  # نگه داشتن سشن
+            messages.success(request, 'رمز عبور شما با موفقیت تغییر کرد.')
+            return redirect('home')
+        else:
+            messages.error(request, 'لطفاً خطاها را برطرف کنید.')
+    else:
+        form = CustomPasswordChangeForm()
+    return render(request, 'core/change_password.html', {'form': form})
+@login_required
+@user_passes_test(is_admin, login_url='home')
+def edit_logs(request, acceptance_number='all'):
+    # فرم جستجو
+    form = SearchLogForm(request.GET or None)
+    logs = EditLog.objects.all().order_by('-edited_at')
+    car = None
+
+    # اعمال فیلتر جستجو
+    if form.is_valid() and form.cleaned_data['acceptance_number']:
+        search_term = form.cleaned_data['acceptance_number']
+        logs = logs.filter(car_entry__acceptance_number__icontains=search_term)
+
+    # اگه acceptance_number خاص باشه
+    if acceptance_number != 'all':
+        car = get_object_or_404(CarEntry, acceptance_number=acceptance_number)
+        logs = logs.filter(car_entry=car)
+
+    # صفحه‌بندی
+    paginator = Paginator(logs, 50)  # 50 سطر در هر صفحه
+    page_number = request.GET.get('page')
+    try:
+        page_logs = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_logs = paginator.page(1)
+    except EmptyPage:
+        page_logs = paginator.page(paginator.num_pages)
+
+    return render(request, 'core/edit_logs.html', {
+        'car': car,
+        'logs': page_logs,
+        'form': form,
+        'paginator': paginator,
+    })
 def user_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -133,16 +247,17 @@ def add_car_entry_step1(request):
         form = CarEntryForm(request.POST)
         if form.is_valid():
             car_entry = form.save(commit=False)
+            # ذخیره با کاربر لاگین‌شده
             car_entry.save(user=request.user)
-            messages.success(request, 'خودرو با موفقیت ثبت شد.')
-            return redirect('registration_list')
+            # ساخت پیام سفارشی با accepted_by و acceptance_number
+            success_message = f" خودرو با شماره پذیرش {car_entry.acceptance_number} توسط {car_entry.accepted_by} با موفقیت ثبت شد "
+            messages.success(request, success_message)
+            return redirect('home')
         else:
             print("Form errors:", form.errors)
     else:
         form = CarEntryForm()
     return render(request, 'core/add_car_entry_step1.html', {'form': form})
-
-@login_required
 def add_car_parts_step2(request, acceptance_number):
     car = get_object_or_404(CarEntry, acceptance_number=acceptance_number)
     
@@ -204,32 +319,44 @@ def edit_car_entry(request, acceptance_number):
         if form.is_valid():
             car_instance = form.save(commit=False)
             car_instance.save(user=request.user)
-            messages.success(request, 'اطلاعات خودرو با موفقیت ویرایش شد.')
+            #ثبت لاگ
+            EditLog.objects.create(
+                edit_type='CAR_ENTRY',
+                car_entry=car_instance,
+                edited_by=request.user
+            )
+            #پیغام
+            messages.success(request, f"اطلاعات خودرو با موفقیت توسط {car_instance.edited_by} ویرایش شد.")
             return redirect('registration_list')
         else:
             messages.error(request, 'لطفاً خطاها را برطرف کنید.')
             print("Form errors:", form.errors)
     else:
-        # پر کردن مقادیر اولیه برای پلاک‌ها
         initial_data = {}
+        # جدا کردن پلاک خودرو
         if car.license_plate:
             try:
                 parts = car.license_plate.split(' - ')
                 if len(parts) == 4:
-                    initial_data['digits1'] = parts[0].split(' ')[0]  # مثلاً 12
-                    initial_data['digits2'] = parts[1]  # مثلاً 123
-                    initial_data['persian_letter'] = parts[2]  # مثلاً الف
-                    initial_data['digits3'] = parts[3]  # مثلاً 45
+                    initial_data['digits1'] = parts[0]
+                    initial_data['persian_letter'] = parts[1]
+                    initial_data['digits2'] = parts[2]
+                    initial_data['digits3'] = parts[3].replace('ایران ', '')
+                else:
+                    print(f"Invalid license_plate format: {car.license_plate}")
             except Exception as e:
                 print(f"Error parsing license_plate: {e}")
+        # جدا کردن پلاک راننده
         if car.driver_license_plate:
             try:
                 parts = car.driver_license_plate.split(' - ')
                 if len(parts) == 4:
-                    initial_data['driver_digits1'] = parts[0].split(' ')[0]
-                    initial_data['driver_digits2'] = parts[1]
-                    initial_data['driver_persian_letter'] = parts[2]
-                    initial_data['driver_digits3'] = parts[3]
+                    initial_data['driver_digits1'] = parts[0]
+                    initial_data['driver_persian_letter'] = parts[1]
+                    initial_data['driver_digits2'] = parts[2]
+                    initial_data['driver_digits3'] = parts[3].replace('ایران ', '')
+                else:
+                    print(f"Invalid driver_license_plate format: {car.driver_license_plate}")
             except Exception as e:
                 print(f"Error parsing driver_license_plate: {e}")
         form = CarEntryForm(instance=car, initial=initial_data)
@@ -242,6 +369,13 @@ def edit_car_parts(request, acceptance_number):
         form = CarPartsForm(request.POST, instance=parts)
         if form.is_valid():
             form.save()
+            # ثبت لاگ
+            EditLog.objects.create(
+                edit_type='CAR_PARTS',
+                car_entry=car,
+                edited_by=request.user
+            )
+            #پیغام
             messages.success(request, 'قطعات خودرو با موفقیت ویرایش شد.')
             return redirect('registration_list')
     else:
@@ -262,6 +396,13 @@ def edit_car_costs(request, acceptance_number):
             car_costs = form.save(commit=False)
             # recorded_by رو تغییر نمی‌دیم، همون مقدار اولیه می‌مونه
             car_costs.save()
+            # ثبت لاگ
+            EditLog.objects.create(
+                edit_type='CAR_COSTS',
+                car_entry=car,
+                edited_by=request.user
+            )
+            #پیغام
             messages.success(request, 'هزینه‌های خودرو با موفقیت ویرایش شد.')
             return redirect('registration_list')
         else:
@@ -376,162 +517,198 @@ def car_details(request, acceptance_number):
 
 @login_required
 def registration_list(request):
-    # گرفتن پارامترهای جستجو از GET
+    cars = CarEntry.objects.all().order_by('-accepted_at')  # مرتب‌سازی نزولی
+
+    # گرفتن مقادیر از درخواست
+    query = request.GET.get('q', '').strip()
     acceptance_number = request.GET.get('acceptance_number', '').strip()
     license_plate = request.GET.get('license_plate', '').strip()
     parking_number = request.GET.get('parking_number', '').strip()
-    has_parts = request.GET.get('has_parts', '')
-    has_costs = request.GET.get('has_costs', '')
     start_date = request.GET.get('start_date', '').strip()
     end_date = request.GET.get('end_date', '').strip()
+    has_parts = request.GET.get('has_parts', '')
+    has_costs = request.GET.get('has_costs', '')
+    part_type = request.GET.get('part_type', '')
 
-    # مرتب‌سازی نزولی بر اساس id
-    cars = CarEntry.objects.all().order_by('-id')
-    print(f"Initial cars: {cars.count()}")
-
-    # اعمال فیلترهای جستجو فقط اگه مقدار غیرخالی باشه
-    if acceptance_number:
-        cars = cars.filter(acceptance_number__icontains=acceptance_number)
-    if license_plate:
-        cars = cars.filter(license_plate__icontains=license_plate)
-    if parking_number:
-        cars = cars.filter(parking_number__icontains=parking_number)
-    if has_parts == 'yes':
-        cars = cars.filter(parts__isnull=False)
-    elif has_parts == 'no':
-        cars = cars.filter(parts__isnull=True)
-    if has_costs == 'yes':
-        cars = cars.filter(costs__isnull=False)
-    elif has_costs == 'no':
-        cars = cars.filter(costs__isnull=True)
-    if start_date:
+    # اعتبارسنجی تاریخ‌ها
+    date_pattern = r'^\d{4}/\d{2}/\d{2}$'  # فرمت: 1403/12/15
+    if start_date and not re.match(date_pattern, start_date):
+        messages.error(request, 'فرمت "از تاریخ" اشتباه است. لطفاً از فرمت 1403/12/15 استفاده کنید.')
+        start_date = ''
+    if end_date and not re.match(date_pattern, end_date):
+        messages.error(request, 'فرمت "تا تاریخ" اشتباه است. لطفاً از فرمت 1403/12/15 استفاده کنید.')
+        end_date = ''
+    if start_date and end_date:
         try:
-            jdatetime.strptime(start_date, '%Y/%m/%d')  # اعتبارسنجی فرمت
-            cars = cars.filter(accepted_at__gte=start_date)
+            start_jdate = jdatetime.strptime(start_date, '%Y/%m/%d')
+            end_jdate = jdatetime.strptime(end_date, '%Y/%m/%d')
+            if start_jdate > end_jdate:
+                messages.error(request, '"از تاریخ" نمی‌تواند بزرگ‌تر از "تا تاریخ" باشد.')
+                start_date = ''
+                end_date = ''
         except ValueError:
-            messages.error(request, "فرمت تاریخ شروع اشتباه است (مثال: 1403/12/15)")
-    if end_date:
-        try:
-            jdatetime.strptime(end_date, '%Y/%m/%d')  # اعتبارسنجی فرمت
-            cars = cars.filter(accepted_at__lte=end_date)
-        except ValueError:
-            messages.error(request, "فرمت تاریخ پایان اشتباه است (مثال: 1403/12/15)")
+            messages.error(request, 'تاریخ‌ها نامعتبر هستند.')
+            start_date = ''
+            end_date = ''
 
-    print(f"Filtered cars: {cars.count()}")
+    # اعمال فیلترها
+    if query:
+        cars = cars.filter(
+            Q(acceptance_number__icontains=query) |
+            Q(license_plate__icontains=query) |
+            Q(car_type__icontains=query) |
+            Q(owner_name__icontains=query) |
+            Q(parking_number__icontains=query) |
+            Q(engine_number__icontains=query) |
+            Q(chassis_number__icontains=query) |
+            Q(driver_name__icontains=query) |
+            Q(driver_license_plate__icontains=query) |
+            Q(driver_phone__icontains=query)
+        )
+    else:
+        if acceptance_number:
+            if len(acceptance_number) > 9:
+                messages.error(request, 'شماره پذیرش نمی‌تواند بیشتر از 9 کاراکتر باشد.')
+            else:
+                cars = cars.filter(acceptance_number__icontains=acceptance_number)
 
-    # خروجی اکسل (بدون تغییر)
-    if 'export' in request.GET:
+        if license_plate:
+            if len(license_plate) > 30:
+                messages.error(request, 'شماره انتظامی نمی‌تواند بیشتر از 30 کاراکتر باشد.')
+            else:
+                cars = cars.filter(license_plate__icontains=license_plate)
+
+        if parking_number:
+            if len(parking_number) > 20:
+                messages.error(request, 'شماره پارکینگ نمی‌تواند بیشتر از 20 کاراکتر باشد.')
+            else:
+                cars = cars.filter(parking_number__icontains=parking_number)
+
+        if start_date:
+            start_date_gregorian = jdatetime.strptime(start_date, '%Y/%m/%d').togregorian()
+            cars = cars.filter(accepted_at__gte=start_date_gregorian)
+
+        if end_date:
+            end_date_gregorian = jdatetime.strptime(end_date, '%Y/%m/%d').togregorian()
+            cars = cars.filter(accepted_at__lte=end_date_gregorian)
+
+        if has_parts in ('yes', 'no'):
+            cars = cars.filter(parts__isnull=(has_parts == 'no'))
+
+        if has_costs in ('yes', 'no'):
+            cars = cars.filter(costs__isnull=(has_costs == 'no'))
+
+        if part_type:
+            valid_parts = [field.name for field in CarParts._meta.fields if isinstance(field, models.BooleanField)]
+            if part_type in valid_parts:
+                cars = cars.filter(parts__isnull=False, **{f"parts__{part_type}": True})
+            else:
+                messages.error(request, 'نوع قطعه انتخاب‌شده نامعتبر است.')
+
+    # خروجی اکسل
+    if request.GET.get('export') == 'excel':
         wb = Workbook()
         ws = wb.active
         ws.title = "لیست ثبت"
         headers = [
             'شماره پذیرش', 'شماره پارکینگ', 'تاریخ تحویل', 'نوع خودرو', 'شماره انتظامی',
-            'نام مالک', 'شماره موتور', 'شماره شاسی', 'پلاک اتاق',
-            'مسئول پذیرش', 'تاریخ پذیرش', 'نام راننده', 'شماره پلاک راننده', 'شماره تماس راننده',
+            'نام مالک', 'شماره موتور', 'شماره شاسی', 'پلاک اتاق', 'مسئول پذیرش',
+            'تاریخ پذیرش', 'نام راننده', 'شماره پلاک راننده', 'شماره تماس راننده',
             'درصد اتاق', 'درب موتور', 'رادیاتور', 'ایسیو', 'درب جلو و عقب', 'سیم‌کشی',
             'کابل باطری', 'بخاری', 'فنر زیر و بند', 'دینام', 'موتور برف‌پاک‌کن', 'رینگ و لاستیک',
             'کاربراتور', 'استارت', 'گیربکس', 'دیفرانسیل', 'دلکو و کوئل', 'سیفون بنزین', 'صندلی',
             'دیسک چرخ جلو', 'باطری', 'جعبه فرمان', 'سپر عقب و جلو', 'کاسه چرخ', 'پلوس و گاردان',
             'ریل سوخت', 'درب صندوق', 'سند', 'انژکتور و سوزن انژکتور', 'شیشه', 'کولر', 'کپسول',
-            'پوستر ترمز', 'وزن', 'وضعیت پلاک', 'توضیحات پلاک', 'مسئول قطعات', 'تاریخ ثبت قطعات',
-            'قیمت روز', 'خلافی', 'سند خلافی', 'هزینه دادگاهی', 'سند دادگاهی', 'هزینه حمل',
-            'سند حمل', 'هزینه وکالت', 'سند وکالت', 'جمع کل', 'مسئول هزینه‌ها', 'تاریخ ثبت هزینه‌ها'
+            'پوستر ترمز', 'وزن', 'وضعیت پلاک', 'توضیحات پلاک', 'مسئول ثبت قطعات', 'تاریخ ثبت قطعات',
+            'قیمت روز', 'خلافی', 'هزینه دادگاهی', 'هزینه حمل', 'هزینه وکالت', 'جمع کل',
+            'مسئول ثبت هزینه‌ها', 'تاریخ ثبت هزینه‌ها'
         ]
         ws.append(headers)
 
         for car in cars:
-            accepted_by = car.accepted_by or ''
-            parts_recorded_by = cabin_percentage = hood = radiator = ecu = front_rear_doors = wiring = ''
-            battery_cable = heater = suspension_spring = alternator = wiper_motor = rims_tires = ''
-            carburetor = starter = gearbox = differential = distributor_coil = fuel_pump = seats = ''
-            front_disc = battery = steering_box = bumpers = wheel_drum = driveshaft_cv = fuel_rail = ''
-            trunk_lid = documents = injector = glass = ac = gas_cylinder = brake_booster = ''
-            weight = plate_status = plate_description = parts_recorded_at = ''
-            if hasattr(car, 'parts') and car.parts:
-                parts_recorded_by = car.parts.recorded_by or ''
-                cabin_percentage = car.parts.cabin_percentage or ''
-                hood = 'دارد' if car.parts.hood else 'ندارد'
-                radiator = 'دارد' if car.parts.radiator else 'ندارد'
-                ecu = 'دارد' if car.parts.ecu else 'ندارد'
-                front_rear_doors = 'دارد' if car.parts.front_rear_doors else 'ندارد'
-                wiring = 'دارد' if car.parts.wiring else 'ندارد'
-                battery_cable = 'دارد' if car.parts.battery_cable else 'ندارد'
-                heater = 'دارد' if car.parts.heater else 'ندارد'
-                suspension_spring = 'دارد' if car.parts.suspension_spring else 'ندارد'
-                alternator = 'دارد' if car.parts.alternator else 'ندارد'
-                wiper_motor = 'دارد' if car.parts.wiper_motor else 'ندارد'
-                rims_tires = 'دارد' if car.parts.rims_tires else 'ندارد'
-                carburetor = 'دارد' if car.parts.carburetor else 'ندارد'
-                starter = 'دارد' if car.parts.starter else 'ندارد'
-                gearbox = 'دارد' if car.parts.gearbox else 'ندارد'
-                differential = 'دارد' if car.parts.differential else 'ندارد'
-                distributor_coil = 'دارد' if car.parts.distributor_coil else 'ندارد'
-                fuel_pump = 'دارد' if car.parts.fuel_pump else 'ندارد'
-                seats = 'دارد' if car.parts.seats else 'ندارد'
-                front_disc = 'دارد' if car.parts.front_disc else 'ندارد'
-                battery = 'دارد' if car.parts.battery else 'ندارد'
-                steering_box = 'دارد' if car.parts.steering_box else 'ندارد'
-                bumpers = 'دارد' if car.parts.bumpers else 'ندارد'
-                wheel_drum = 'دارد' if car.parts.wheel_drum else 'ندارد'
-                driveshaft_cv = 'دارد' if car.parts.driveshaft_cv else 'ندارد'
-                fuel_rail = 'دارد' if car.parts.fuel_rail else 'ندارد'
-                trunk_lid = 'دارد' if car.parts.trunk_lid else 'ندارد'
-                documents = 'دارد' if car.parts.documents else 'ندارد'
-                injector = 'دارد' if car.parts.injector else 'ندارد'
-                glass = 'دارد' if car.parts.glass else 'ندارد'
-                ac = 'دارد' if car.parts.ac else 'ندارد'
-                gas_cylinder = car.parts.gas_cylinder or ''
-                brake_booster = 'دارد' if car.parts.brake_booster else 'ندارد'
-                weight = car.parts.weight or ''
-                plate_status = car.parts.plate_status or ''
-                plate_description = car.parts.plate_description or ''
-                parts_recorded_at = str(car.parts.recorded_at) if car.parts.recorded_at else ''
-
-            costs_recorded_by = daily_price = fine = fine_document = court_cost = court_document = ''
-            transport_cost = transport_document = proxy_cost = proxy_document = total_cost = costs_recorded_at = ''
-            if hasattr(car, 'costs') and car.costs:
-                costs_recorded_by = car.costs.recorded_by or ''
-                daily_price = car.costs.daily_price or ''
-                fine = car.costs.fine or ''
-                fine_document = car.costs.fine_document.name if car.costs.fine_document else ''
-                court_cost = car.costs.court_cost or ''
-                court_document = car.costs.court_document.name if car.costs.court_document else ''
-                transport_cost = car.costs.transport_cost or ''
-                transport_document = car.costs.transport_document.name if car.costs.transport_document else ''
-                proxy_cost = car.costs.proxy_cost or ''
-                proxy_document = car.costs.proxy_document.name if car.costs.proxy_document else ''
-                total_cost = car.costs.total_cost or ''
-                costs_recorded_at = str(car.costs.recorded_at) if car.costs.recorded_at else ''
+            parts_data = car.parts if hasattr(car, 'parts') and car.parts else None
+            costs_data = car.costs if hasattr(car, 'costs') and car.costs else None
 
             row = [
-                car.acceptance_number, car.parking_number, str(car.delivery_date), car.car_type, car.license_plate,
-                car.owner_name, car.engine_number, car.chassis_number, 'دارد' if car.has_cabin_plate else 'ندارد',
-                accepted_by, str(car.accepted_at), car.driver_name, car.driver_license_plate, car.driver_phone,
-                cabin_percentage, hood, radiator, ecu, front_rear_doors, wiring, battery_cable, heater,
-                suspension_spring, alternator, wiper_motor, rims_tires, carburetor, starter, gearbox,
-                differential, distributor_coil, fuel_pump, seats, front_disc, battery, steering_box,
-                bumpers, wheel_drum, driveshaft_cv, fuel_rail, trunk_lid, documents, injector, glass,
-                ac, gas_cylinder, brake_booster, weight, plate_status, plate_description,
-                parts_recorded_by, parts_recorded_at,
-                daily_price, fine, fine_document, court_cost, court_document, transport_cost,
-                transport_document, proxy_cost, proxy_document, total_cost, costs_recorded_by, costs_recorded_at
+                car.acceptance_number,
+                car.parking_number,
+                car.delivery_date,
+                car.car_type,
+                car.license_plate,
+                car.owner_name,
+                car.engine_number,
+                car.chassis_number,
+                'دارد' if car.has_cabin_plate else 'ندارد',
+                car.accepted_by.username if car.accepted_by else '',
+                car.accepted_at,
+                car.driver_name,
+                car.driver_license_plate,
+                car.driver_phone,
+                parts_data.cabin_percentage if parts_data else '',
+                'دارد' if parts_data and parts_data.hood else 'ندارد',
+                'دارد' if parts_data and parts_data.radiator else 'ندارد',
+                'دارد' if parts_data and parts_data.ecu else 'ندارد',
+                'دارد' if parts_data and parts_data.front_rear_doors else 'ندارد',
+                'دارد' if parts_data and parts_data.wiring else 'ندارد',
+                'دارد' if parts_data and parts_data.battery_cable else 'ندارد',
+                'دارد' if parts_data and parts_data.heater else 'ندارد',
+                'دارد' if parts_data and parts_data.suspension_spring else 'ندارد',
+                'دارد' if parts_data and parts_data.alternator else 'ندارد',
+                'دارد' if parts_data and parts_data.wiper_motor else 'ندارد',
+                'دارد' if parts_data and parts_data.rims_tires else 'ندارد',
+                'دارد' if parts_data and parts_data.carburetor else 'ندارد',
+                'دارد' if parts_data and parts_data.starter else 'ندارد',
+                'دارد' if parts_data and parts_data.gearbox else 'ندارد',
+                'دارد' if parts_data and parts_data.differential else 'ندارد',
+                'دارد' if parts_data and parts_data.distributor_coil else 'ندارد',
+                'دارد' if parts_data and parts_data.fuel_pump else 'ندارد',
+                'دارد' if parts_data and parts_data.seats else 'ندارد',
+                'دارد' if parts_data and parts_data.front_disc else 'ندارد',
+                'دارد' if parts_data and parts_data.battery else 'ندارد',
+                'دارد' if parts_data and parts_data.steering_box else 'ندارد',
+                'دارد' if parts_data and parts_data.bumpers else 'ندارد',
+                'دارد' if parts_data and parts_data.wheel_drum else 'ندارد',
+                'دارد' if parts_data and parts_data.driveshaft_cv else 'ندارد',
+                'دارد' if parts_data and parts_data.fuel_rail else 'ندارد',
+                'دارد' if parts_data and parts_data.trunk_lid else 'ندارد',
+                'دارد' if parts_data and parts_data.documents else 'ندارد',
+                'دارد' if parts_data and parts_data.injector else 'ندارد',
+                'دارد' if parts_data and parts_data.glass else 'ندارد',
+                'دارد' if parts_data and parts_data.ac else 'ندارد',
+                parts_data.gas_cylinder if parts_data else '',
+                'دارد' if parts_data and parts_data.brake_booster else 'ندارد',
+                parts_data.weight if parts_data else '',
+                parts_data.plate_status if parts_data else '',
+                parts_data.plate_description if parts_data else '',
+                parts_data.recorded_by.username if parts_data and parts_data.recorded_by else '',
+                parts_data.recorded_at if parts_data else '',
+                costs_data.daily_price if costs_data else '',
+                costs_data.fine if costs_data else '',
+                costs_data.court_cost if costs_data else '',
+                costs_data.transport_cost if costs_data else '',
+                costs_data.proxy_cost if costs_data else '',
+                costs_data.total_cost if costs_data else '',
+                costs_data.recorded_by.username if costs_data and costs_data.recorded_by else '',
+                costs_data.recorded_at if costs_data else ''
             ]
             ws.append(row)
-            print(f"Added row: {row}")
 
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename="registration_list.xlsx"'
         wb.save(response)
         return response
 
+    # صفحه‌بندی
+    paginator = Paginator(cars, 10)  # تغییر به 10 سطر در هر صفحه
+    page_number = request.GET.get('page')
+    try:
+        page_cars = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_cars = paginator.page(1)
+    except EmptyPage:
+        page_cars = paginator.page(paginator.num_pages)
+
     context = {
-        'cars': cars,
-        'acceptance_number': acceptance_number,
-        'license_plate': license_plate,
-        'parking_number': parking_number,
-        'has_parts': has_parts,
-        'has_costs': has_costs,
-        'start_date': start_date,
-        'end_date': end_date,
+        'cars': page_cars,  # فقط صفحه فعلی رو می‌فرستیم
     }
     return render(request, 'core/registration_list.html', context)

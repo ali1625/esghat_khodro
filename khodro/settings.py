@@ -37,7 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #app-khodro
     'django_jalali',
+    'mathfilters',
+    'widget_tweaks',
     'core',
 ]
 
@@ -49,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.ForcePasswordChangeMiddleware',
 ]
 
 ROOT_URLCONF = 'khodro.urls'
