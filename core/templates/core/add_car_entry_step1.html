@@ -6,33 +6,33 @@
         <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
             <div class="card-body p-4">
                 <h2 class="card-title text-center mb-4 fw-bold text-primary">ثبت خودرو</h2>
-                <form method="post" id="car-entry-form" class="needs-validation" novalidate>
+                <form method="post" id="car-entry-form" class="needs-validation" novalidate enctype="multipart/form-data">
                     {% csrf_token %}
                     <!-- شماره پلاک خودرو -->
-<div class="row g-4 mb-4">
-    <div class="col-md-6">
-        <label class="form-label fw-bold text-muted text-end d-block">شماره انتظامی</label>
-        <div class="iranian-license-plate d-flex align-items-center" dir="ltr">
-            <div class="flag ms-2"></div>
-            <input type="text" name="digits1" class="form-control modern-input no-spinner uniform-size ms-2" maxlength="2" pattern="\d{2}" placeholder="41" required>
-            <span class="separator mx-1">-</span>
-            <select name="persian_letter" class="form-select modern-select uniform-size ms-2" required>
-                <option value="" selected disabled>-- انتخاب کنید --</option>
-                {% for char in "الف ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی" %}
-                    <option value="{{ char }}">{{ char }}</option>
-                {% endfor %}
-            </select>
-            <span class="separator mx-1">-</span>
-            <input type="text" name="digits2" class="form-control modern-input no-spinner uniform-size ms-2" maxlength="3" pattern="\d{3}" placeholder="969" required>
-            <span class="separator mx-1">-</span>
-            <div class="digits3-container ms-2 position-relative">
-                <span class="iran-label position-absolute">ایران</span>
-                <input type="text" name="digits3" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" placeholder="53" required>
-            </div>
-            <input type="hidden" name="license_plate" class="license-plate-hidden">
-        </div>
-        <div class="invalid-feedback d-block mt-1">لطفاً پلاک خودرو را کامل وارد کنید</div>
-    </div>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-end d-block">شماره انتظامی</label>
+                            <div class="iranian-license-plate d-flex align-items-center" dir="ltr">
+                                <div class="flag ms-2"></div>
+                                <input type="text" name="digits1" class="form-control modern-input no-spinner uniform-size ms-2" maxlength="2" pattern="\d{2}" placeholder="41" required>
+                                <span class="separator mx-1">-</span>
+                                <select name="persian_letter" class="form-select modern-select uniform-size ms-2" required>
+                                    <option value="" selected disabled>-- انتخاب کنید --</option>
+                                    {% for char in "الف ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی" %}
+                                        <option value="{{ char }}">{{ char }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="separator mx-1">-</span>
+                                <input type="text" name="digits2" class="form-control modern-input no-spinner uniform-size ms-2" maxlength="3" pattern="\d{3}" placeholder="969" required>
+                                <span class="separator mx-1">-</span>
+                                <div class="digits3-container ms-2 position-relative">
+                                    <span class="iran-label position-absolute">ایران</span>
+                                    <input type="text" name="digits3" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" placeholder="53" required>
+                                </div>
+                                <input type="hidden" name="license_plate" class="license-plate-hidden">
+                            </div>
+                            <div class="invalid-feedback d-block mt-1">لطفاً پلاک خودرو را کامل وارد کنید</div>
+                        </div>
                         <!-- شماره پلاک راننده -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-muted text-end d-block">شماره پلاک راننده/آورنده</label>
@@ -65,7 +65,7 @@
                             {% if field.name != 'license_plate' and field.name != 'driver_license_plate' %}
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold text-muted text-end d-block">{{ field.label }}</label>
-                                    {{ field|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ field|add_class:"form-control modern-input" }}
                                     {% if field.errors %}
                                         <div class="text-danger mt-1">{{ field.errors }}</div>
                                     {% endif %}
@@ -98,7 +98,7 @@
         }
         .modern-input, .modern-select {
             border-radius: 10px;
-            border: 1px solid #6c757d; /* خاکستری */
+            border: 1px solid #6c757d;
             padding: 12px;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
@@ -143,11 +143,11 @@
             -moz-appearance: textfield;
         }
         .uniform-size {
-            width: 70px; /* اندازه یکسان برای همه */
+            width: 70px;
             text-align: center;
         }
         .modern-select.uniform-size {
-            width: 90px; /* کمی بزرگ‌تر برای خوانایی */
+            width: 90px;
         }
         .modern-btn {
             padding: 10px 25px;

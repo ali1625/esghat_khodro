@@ -10,6 +10,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'js/persianDatepicker.js' %}"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <style>
         @font-face {
             font-family: 'Vazir';
@@ -91,6 +92,21 @@
             background-color: #5a656f;
             color: #fff;
             transform: translateX(-5px);
+        }
+        .sidebar .dropdown-menu {
+            background: #5a656f;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+        }
+        .sidebar .dropdown-item {
+            color: #e9ecef;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+        .sidebar .dropdown-item:hover {
+            background-color: #6d7985;
+            color: #fff;
         }
 
         /* دسکتاپ: سایدبار عمودی */
@@ -194,12 +210,23 @@
             <h4 class="text-center mb-4">منو</h4>
             <nav>
                 <a href="{% url 'home' %}" class="nav-link"><i class="bi bi-house me-2"></i> صفحه اصلی</a>
+
+                <!-- منوی سند خودرو -->
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-file-earmark-text me-2"></i> سند خودرو
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'add_document' %}"><i class="bi bi-plus-circle me-2"></i> ثبت سند</a></li>
+                        <li><a class="dropdown-item" href="{% url 'document_list' %}"><i class="bi bi-list-ul me-2"></i> لیست سند</a></li>
+                    </ul>
+                </div>
+
                 <a href="{% url 'registration_list' %}" class="nav-link"><i class="bi bi-list-ul me-2"></i> لیست ثبت</a>
-                {% if user.is_superuser %}
-                    <a href="{% url 'user_management' %}" class="nav-link"><i class="bi bi-people me-2"></i> مدیریت کاربران</a>
-                    <a href="{% url 'edit_logs' acceptance_number='all' %}" class="nav-link"><i class="bi bi-clock-history me-2"></i> لاگ‌های ویرایش</a>
-                {% endif %}
-                <a href="{% url 'change_password' %}" class="nav-link"><i class="bi bi-key me-2"></i> تغییر رمز عبور</a>
+                <a href="{% url 'finalized_list' %}" class="nav-link" {% if user.userprofile.role != 'admin' %}style="display: none;"{% endif %}><i class="bi bi-check-circle me-2"></i> لیست نهایی</a>
+                <a href="{% url 'edit_logs' acceptance_number='all' %}" class="nav-link" {% if user.userprofile.role != 'admin' %}style="display: none;"{% endif %}><i class="bi bi-clock-history me-2"></i> لاگ‌های ویرایش</a>
+                <a href="{% url 'user_management' %}" class="nav-link" {% if user.userprofile.role != 'admin' %}style="display: none;"{% endif %}><i class="bi bi-people me-2"></i> مدیریت کاربران</a>
+                <a href="{% url 'update_password' %}" class="nav-link"><i class="bi bi-key me-2"></i> تغییر رمز عبور</a>
             </nav>
         </div>
         <div class="content">

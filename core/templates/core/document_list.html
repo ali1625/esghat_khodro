@@ -1,0 +1,193 @@
+<!-- core/templates/core/document_list.html -->
+{% extends 'core/base.html' %}
+{% load static widget_tweaks %}
+{% block title %}لیست اسناد{% endblock %}
+{% block content %}
+    <div class="container mt-4">
+        <h2 class="text-primary">لیست اسناد</h2>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- فرم جستجو -->
+        <div class="modern-card p-4 mb-4">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="engine_number" value="{{ engine_number }}" class="modern-input" placeholder="شماره موتور">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="chassis_number" value="{{ chassis_number }}" class="modern-input" placeholder="شماره شاسی">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="acceptance_number" value="{{ acceptance_number }}" class="modern-input" placeholder="شماره پذیرش">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="date_from" value="{{ date_from }}" class="modern-input persian-datepicker" placeholder="از تاریخ">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="date_to" value="{{ date_to }}" class="modern-input persian-datepicker" placeholder="تا تاریخ">
+                </div>
+                <div class="col-md-3">
+                    <select name="car_status" class="modern-select">
+                        <option value="">همه</option>
+                        <option value="connected" {% if car_status == 'connected' %}selected{% endif %}>وصل‌شده</option>
+                        <option value="not_connected" {% if car_status == 'not_connected' %}selected{% endif %}>بدون خودرو</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary modern-btn w-100">جستجو</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- جدول اسناد -->
+        <div class="modern-card p-4">
+            <table class="table table-hover modern-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>شماره موتور</th>
+                        <th>شماره شاسی</th>
+                        <th>خودرو مرتبط</th>
+                        <th>ایجاد شده توسط</th>
+                        <th>تاریخ ایجاد</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for document in page_obj %}
+                        <tr>
+                            <td>{{ document.engine_number }}</td>
+                            <td>{{ document.chassis_number }}</td>
+                            <td>{{ document.car.acceptance_number|default:"بدون خودرو" }}</td>
+                            <td>{{ document.created_by.username }}</td>
+                            <td>{{ document.created_at }}</td>
+                            <td>
+                                <a href="{% url 'edit_document' document.pk %}" class="btn btn-primary btn-sm modern-btn">ویرایش</a>
+                                {% if document.car %}
+                                    <button class="btn btn-info btn-sm modern-btn" data-bs-toggle="modal" data-bs-target="#carModal{{ document.pk }}">جزئیات خودرو</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">هیچ سندی یافت نشد.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- صفحه‌بندی -->
+            {% if page_obj.has_other_pages %}
+                <div class="pagination mt-3 d-flex justify-content-center gap-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}&engine_number={{ engine_number }}&chassis_number={{ chassis_number }}&acceptance_number={{ acceptance_number }}&date_from={{ date_from }}&date_to={{ date_to }}&car_status={{ car_status }}" class="btn modern-btn">قبلی</a>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        <a href="?page={{ num }}&engine_number={{ engine_number }}&chassis_number={{ chassis_number }}&acceptance_number={{ acceptance_number }}&date_from={{ date_from }}&date_to={{ date_to }}&car_status={{ car_status }}" class="btn modern-btn {% if page_obj.number == num %}active{% endif %}" {% if page_obj.number == num %}style="background-color: #007bff; color: white;"{% endif %}>{{ num }}</a>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}&engine_number={{ engine_number }}&chassis_number={{ chassis_number }}&acceptance_number={{ acceptance_number }}&date_from={{ date_from }}&date_to={{ date_to }}&car_status={{ car_status }}" class="btn modern-btn">بعدی</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- مودال‌های جزئیات خودرو -->
+        {% for document in page_obj %}
+            {% if document.car %}
+                <div class="modal fade" id="carModal{{ document.pk }}" tabindex="-1" aria-labelledby="carModalLabel{{ document.pk }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content modern-card">
+                            <div class="modal-header">
+                                <h5 class="modal-title text-primary" id="carModalLabel{{ document.pk }}">جزئیات خودرو {{ document.car.acceptance_number }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>شماره پذیرش:</strong> {{ document.car.acceptance_number }}</p>
+                                <p><strong>شماره موتور:</strong> {{ document.car.engine_number }}</p>
+                                <p><strong>شماره شاسی:</strong> {{ document.car.chassis_number }}</p>
+                                <p><strong>نوع خودرو:</strong> {{ document.car.car_type|default:"مشخص نشده" }}</p>
+                                <p><strong>شماره انتظامی:</strong> {{ document.car.license_plate|default:"مشخص نشده" }}</p>
+                                <p><strong>نام مالک:</strong> {{ document.car.owner_name|default:"مشخص نشده" }}</p>
+                                <p><strong>تاریخ تحویل:</strong> {{ document.car.delivery_date|default:"مشخص نشده" }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary modern-btn" data-bs-dismiss="modal">بستن</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <style>
+        .modern-card {
+            border: none;
+            border-radius: 15px;
+            background: #ffffff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .modern-input, .modern-select {
+            border-radius: 10px;
+            border: 1px solid #6c757d;
+            padding: 12px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+            background: #f8f9fa;
+        }
+        .modern-input:focus, .modern-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+        .modern-btn {
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .text-primary {
+            color: #007bff !important;
+        }
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .modern-table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .table-dark {
+            background-color: #343a40;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f1f3f5;
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.875rem;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+            $(".persian-datepicker").persianDatepicker({
+                format: "YYYY/MM/DD",
+                autoClose: true,
+            });
+        });
+    </script>
+{% endblock %}

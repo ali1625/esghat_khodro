@@ -32,7 +32,7 @@
                     <!-- قیمت روز بالاتر از همه -->
                     <div class="mb-4">
                         <label class="form-label fw-bold text-muted d-block text-end">{{ form.daily_price.label }}</label>
-                        {{ form.daily_price|add_class:"form-control small-input"|attr:"required" }}
+                        {{ form.daily_price|add_class:"form-control small-input" }}
                         {% if form.daily_price.errors %}
                             <div class="text-danger mt-1 text-end">{{ form.daily_price.errors }}</div>
                         {% endif %}
@@ -46,28 +46,28 @@
                             <div class="row g-3">
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold text-muted d-block text-end">{{ form.fine_document.label }}</label>
-                                    {{ form.fine_document|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ form.fine_document|add_class:"form-control modern-input" }}
                                     {% if form.fine_document.errors %}
                                         <div class="text-danger mt-1 text-end">{{ form.fine_document.errors }}</div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold text-muted d-block text-end">{{ form.court_document.label }}</label>
-                                    {{ form.court_document|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ form.court_document|add_class:"form-control modern-input" }}
                                     {% if form.court_document.errors %}
                                         <div class="text-danger mt-1 text-end">{{ form.court_document.errors }}</div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold text-muted d-block text-end">{{ form.transport_document.label }}</label>
-                                    {{ form.transport_document|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ form.transport_document|add_class:"form-control modern-input" }}
                                     {% if form.transport_document.errors %}
                                         <div class="text-danger mt-1 text-end">{{ form.transport_document.errors }}</div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold text-muted d-block text-end">{{ form.proxy_document.label }}</label>
-                                    {{ form.proxy_document|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ form.proxy_document|add_class:"form-control modern-input" }}
                                     {% if form.proxy_document.errors %}
                                         <div class="text-danger mt-1 text-end">{{ form.proxy_document.errors }}</div>
                                     {% endif %}
@@ -81,28 +81,28 @@
                             <div class="row g-3">
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold text-muted d-block text-end">{{ form.fine.label }}</label>
-                                    {{ form.fine|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ form.fine|add_class:"form-control modern-input" }}
                                     {% if form.fine.errors %}
                                         <div class="text-danger mt-1 text-end">{{ form.fine.errors }}</div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold text-muted d-block text-end">{{ form.court_cost.label }}</label>
-                                    {{ form.court_cost|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ form.court_cost|add_class:"form-control modern-input" }}
                                     {% if form.court_cost.errors %}
                                         <div class="text-danger mt-1 text-end">{{ form.court_cost.errors }}</div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold text-muted d-block text-end">{{ form.transport_cost.label }}</label>
-                                    {{ form.transport_cost|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ form.transport_cost|add_class:"form-control modern-input" }}
                                     {% if form.transport_cost.errors %}
                                         <div class="text-danger mt-1 text-end">{{ form.transport_cost.errors }}</div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold text-muted d-block text-end">{{ form.proxy_cost.label }}</label>
-                                    {{ form.proxy_cost|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ form.proxy_cost|add_class:"form-control modern-input" }}
                                     {% if form.proxy_cost.errors %}
                                         <div class="text-danger mt-1 text-end">{{ form.proxy_cost.errors }}</div>
                                     {% endif %}
@@ -113,10 +113,8 @@
 
                     <!-- دکمه‌ها -->
                     <div class="d-flex justify-content-center gap-3 mt-5">
-                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">
-                            <i class="bi bi-save me-2"></i>ذخیره تغییرات
-                        </button>
-                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
+                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره تغییرات</button>
+                        <a href="{% url 'registration-list/' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
                     </div>
                 </form>
             </div>
@@ -163,9 +161,6 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
-        .form-label {
-            margin-bottom: 0.25rem; /* فاصله بین لیبل و کادر */
-        }
         .text-primary {
             color: #007bff !important;
         }
@@ -180,9 +175,8 @@
         }
     </style>
 
-    <!-- انیمیشن‌ها و آیکون‌ها -->
+    <!-- انیمیشن‌ها -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- اسکریپت‌ها -->
     <script>

@@ -1,0 +1,74 @@
+<!-- core/templates/core/edit_document.html -->
+{% extends 'core/base.html' %}
+{% load form_tags %}
+{% load static widget_tweaks %}
+{% block title %}ویرایش سند{% endblock %}
+{% block content %}
+    <div class="form-container">
+        {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4 fw-bold text-primary">ویرایش سند: {{ document.engine_number }}</h2>
+                <form method="post" id="document-form" class="needs-validation" novalidate enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-4">
+                        {% for field in form %}
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted text-end d-block">{{ field.label }}</label>
+                                {{ field|add_class:"form-control modern-input" }}
+                                {% if field.name in 'file1 file2 file3' and document|getattribute:field.name %}
+                                    <p class="mt-1"><a href="{{ document|getattribute:field.name.url }}" target="_blank" class="text-muted">مشاهده فایل فعلی</a></p>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="text-danger mt-1">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="d-flex justify-content-center gap-3 mt-5">
+                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره تغییرات</button>
+                        <a href="{% url 'document_list' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modern-card { border: none; border-radius: 15px; background: #ffffff; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .modern-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+        .modern-input, .modern-select { border-radius: 10px; border: 1px solid #6c757d; padding: 12px; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+        .modern-input:focus, .modern-select:focus { border-color: #007bff; box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); outline: none; }
+        .modern-btn { padding: 10px 25px; border-radius: 25px; font-weight: 600; transition: all 0.3s ease; }
+        .modern-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
+        .text-primary { color: #007bff !important; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script>
+        $(document).ready(function() {
+            $(".persian-datepicker").persianDatepicker({
+                format: "YYYY/MM/DD",
+                autoClose: true,
+            });
+            var forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        });
+    </script>
+{% endblock %}

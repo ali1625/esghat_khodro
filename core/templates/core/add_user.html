@@ -54,6 +54,14 @@
                             <div class="text-danger">{{ form.phone_number.errors }}</div>
                         {% endif %}
                     </div>
+
+                    <div class="mb-3">
+                        {{ form.role.label_tag }}
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                            <div class="text-danger">{{ form.role.errors }}</div>
+                        {% endif %}
+                    </div>
                     <div class="text-center">
                         <button type="submit" class="btn btn-primary modern-btn">ثبت کاربر</button>
                         <a href="{% url 'user_management' %}" class="btn btn-secondary modern-btn ms-2">بازگشت</a>

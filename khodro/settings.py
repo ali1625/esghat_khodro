@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'django_jalali',
     'mathfilters',
     'widget_tweaks',
-    'core',
+    'core.apps.CoreConfig',
+
 ]
 
 MIDDLEWARE = [
@@ -122,7 +123,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/home/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 

@@ -1,0 +1,111 @@
+{% extends 'core/base.html' %}
+{% load static widget_tweaks %}
+{% block title %}لیست ثبت‌شده‌ها{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4 fw-bold text-primary">لیست ثبت‌شده‌ها</h2>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="get" class="mb-4">
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-6">
+                            <input type="text" name="q" class="form-control modern-input" placeholder="جستجو..." value="{{ request.GET.q }}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary modern-btn w-100">
+                                <i class="bi bi-search me-2"></i>جستجو
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover modern-table">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="text-end">شماره پذیرش</th>
+                                <th class="text-end">نوع خودرو</th>
+                                <th class="text-end">نام مالک</th>
+                                <th class="text-end">کد رهگیری</th>
+                                <th class="text-end">تاریخ ثبت نهایی</th>
+                                <th class="text-end">عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for car in cars %}
+                                <tr>
+                                    <td class="text-end">{{ car.acceptance_number }}</td>
+                                    <td class="text-end">{{ car.car_type }}</td>
+                                    <td class="text-end">{{ car.owner_name }}</td>
+                                    <td class="text-end">{{ car.final_registration.tracking_code }}</td>
+                                    <td class="text-end">{{ car.final_registration.finalized_at }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'car_details' car.acceptance_number %}" class="btn btn-success btn-sm me-1" title="جزئیات">
+                                            <i class="bi bi-list-ul"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">داده‌ای یافت نشد</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if cars.has_other_pages %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if cars.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ cars.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                                        <span aria-hidden="true">«</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">«</span>
+                                </li>
+                            {% endif %}
+
+                            {% for num in cars.paginator.page_range %}
+                                {% if cars.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > cars.number|add:-3 and num < cars.number|add:3 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if cars.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ cars.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                                        <span aria-hidden="true">»</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">»</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

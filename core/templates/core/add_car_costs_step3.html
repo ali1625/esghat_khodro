@@ -2,198 +2,191 @@
 {% load static widget_tweaks %}
 {% block title %}ثبت هزینه‌ها{% endblock %}
 {% block content %}
-    <div class="form-container">
-        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
-            <div class="card-body p-4">
-                <h2 class="card-title text-center mb-4 fw-bold text-primary">ثبت هزینه‌ها - {{ car.acceptance_number }}</h2>
+    <!-- بقیه کد تا قبل از فرم همونه -->
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate id="costForm">
+        {% csrf_token %}
 
-                <!-- اطلاعات خودرو -->
-                <div class="mb-4 info-section p-3 rounded">
-                    <h5 class="fw-bold text-muted mb-3 text-center">اطلاعات خودرو</h5>
-                    <p class="mb-2 text-end"><strong>نوع خودرو:</strong> {{ car.car_type }}</p>
-                    <p class="mb-2 text-end"><strong>شماره انتظامی:</strong> {{ car.license_plate }}</p>
-                    <p class="mb-0 text-end"><strong>نام مالک:</strong> {{ car.owner_name }}</p>
-                </div>
+        <!-- قیمت روز -->
+        <div class="mb-4">
+            <label class="form-label fw-bold text-muted d-block text-end">{{ form.daily_price.label }}</label>
+            {{ form.daily_price|add_class:"form-control small-input" }}
+            {% if form.daily_price.errors %}
+                <div class="text-danger mt-1 text-end">{{ form.daily_price.errors }}</div>
+            {% endif %}
+        </div>
 
-                <!-- پیام‌ها -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <!-- فرم -->
-                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-                    {% csrf_token %}
-
-                    <!-- قیمت روز بالاتر از همه -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.daily_price.label }}</label>
-                        {{ form.daily_price|add_class:"form-control small-input"|attr:"required" }}
-                        {% if form.daily_price.errors %}
-                            <div class="text-danger mt-1 text-end">{{ form.daily_price.errors }}</div>
+        <!-- بخش‌های اسناد و هزینه‌ها -->
+        <div class="row g-4">
+            <!-- ستون اسناد -->
+            <div class="col-md-6">
+                <h4 class="mb-3 text-muted fw-bold text-center">اسناد</h4>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.fine_document.label }}</label>
+                        <input type="file" name="fine_document" id="id_fine_document" class="form-control modern-input d-none" accept="image/*">
+                        <button type="button" class="btn btn-outline-primary w-100 mb-2" onclick="captureImage('id_fine_document', 'fine_preview')">گرفتن عکس</button>
+                        <img id="fine_preview" class="img-preview mt-2" style="display:none; max-width: 100%;">
+                        {% if form.fine_document.errors %}
+                            <div class="text-danger mt-1 text-end">{{ form.fine_document.errors }}</div>
                         {% endif %}
                     </div>
-
-                    <!-- بخش‌های اسناد و هزینه‌ها -->
-                    <div class="row g-4">
-                        <!-- ستون اسناد -->
-                        <div class="col-md-6">
-                            <h4 class="mb-3 text-muted fw-bold text-center">اسناد</h4>
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold text-muted d-block text-end">{{ form.fine_document.label }}</label>
-                                    {{ form.fine_document|add_class:"form-control modern-input"|attr:"required" }}
-                                    {% if form.fine_document.errors %}
-                                        <div class="text-danger mt-1 text-end">{{ form.fine_document.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold text-muted d-block text-end">{{ form.court_document.label }}</label>
-                                    {{ form.court_document|add_class:"form-control modern-input"|attr:"required" }}
-                                    {% if form.court_document.errors %}
-                                        <div class="text-danger mt-1 text-end">{{ form.court_document.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold text-muted d-block text-end">{{ form.transport_document.label }}</label>
-                                    {{ form.transport_document|add_class:"form-control modern-input"|attr:"required" }}
-                                    {% if form.transport_document.errors %}
-                                        <div class="text-danger mt-1 text-end">{{ form.transport_document.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold text-muted d-block text-end">{{ form.proxy_document.label }}</label>
-                                    {{ form.proxy_document|add_class:"form-control modern-input"|attr:"required" }}
-                                    {% if form.proxy_document.errors %}
-                                        <div class="text-danger mt-1 text-end">{{ form.proxy_document.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ستون هزینه‌ها -->
-                        <div class="col-md-6">
-                            <h4 class="mb-3 text-muted fw-bold text-center">هزینه‌ها</h4>
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold text-muted d-block text-end">{{ form.fine.label }}</label>
-                                    {{ form.fine|add_class:"form-control modern-input"|attr:"required" }}
-                                    {% if form.fine.errors %}
-                                        <div class="text-danger mt-1 text-end">{{ form.fine.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold text-muted d-block text-end">{{ form.court_cost.label }}</label>
-                                    {{ form.court_cost|add_class:"form-control modern-input"|attr:"required" }}
-                                    {% if form.court_cost.errors %}
-                                        <div class="text-danger mt-1 text-end">{{ form.court_cost.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold text-muted d-block text-end">{{ form.transport_cost.label }}</label>
-                                    {{ form.transport_cost|add_class:"form-control modern-input"|attr:"required" }}
-                                    {% if form.transport_cost.errors %}
-                                        <div class="text-danger mt-1 text-end">{{ form.transport_cost.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold text-muted d-block text-end">{{ form.proxy_cost.label }}</label>
-                                    {{ form.proxy_cost|add_class:"form-control modern-input"|attr:"required" }}
-                                    {% if form.proxy_cost.errors %}
-                                        <div class="text-danger mt-1 text-end">{{ form.proxy_cost.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.court_document.label }}</label>
+                        <input type="file" name="court_document" id="id_court_document" class="form-control modern-input d-none" accept="image/*">
+                        <button type="button" class="btn btn-outline-primary w-100 mb-2" onclick="captureImage('id_court_document', 'court_preview')">گرفتن عکس</button>
+                        <img id="court_preview" class="img-preview mt-2" style="display:none; max-width: 100%;">
+                        {% if form.court_document.errors %}
+                            <div class="text-danger mt-1 text-end">{{ form.court_document.errors }}</div>
+                        {% endif %}
                     </div>
-
-                    <!-- دکمه‌ها -->
-                    <div class="d-flex justify-content-center gap-3 mt-5">
-                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره</button>
-                        <a href="{% url 'home' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.transport_document.label }}</label>
+                        <input type="file" name="transport_document" id="id_transport_document" class="form-control modern-input d-none" accept="image/*">
+                        <button type="button" class="btn btn-outline-primary w-100 mb-2" onclick="captureImage('id_transport_document', 'transport_preview')">گرفتن عکس</button>
+                        <img id="transport_preview" class="img-preview mt-2" style="display:none; max-width: 100%;">
+                        {% if form.transport_document.errors %}
+                            <div class="text-danger mt-1 text-end">{{ form.transport_document.errors }}</div>
+                        {% endif %}
                     </div>
-                </form>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.proxy_document.label }}</label>
+                        <input type="file" name="proxy_document" id="id_proxy_document" class="form-control modern-input d-none" accept="image/*">
+                        <button type="button" class="btn btn-outline-primary w-100 mb-2" onclick="captureImage('id_proxy_document', 'proxy_preview')">گرفتن عکس</button>
+                        <img id="proxy_preview" class="img-preview mt-2" style="display:none; max-width: 100%;">
+                        {% if form.proxy_document.errors %}
+                            <div class="text-danger mt-1 text-end">{{ form.proxy_document.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ستون هزینه‌ها -->
+            <div class="col-md-6">
+                <h4 class="mb-3 text-muted fw-bold text-center">هزینه‌ها</h4>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.fine.label }}</label>
+                        {{ form.fine|add_class:"form-control modern-input" }}
+                        {% if form.fine.errors %}
+                            <div class="text-danger mt-1 text-end">{{ form.fine.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.court_cost.label }}</label>
+                        {{ form.court_cost|add_class:"form-control modern-input" }}
+                        {% if form.court_cost.errors %}
+                            <div class="text-danger mt-1 text-end">{{ form.court_cost.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.transport_cost.label }}</label>
+                        {{ form.transport_cost|add_class:"form-control modern-input" }}
+                        {% if form.transport_cost.errors %}
+                            <div class="text-danger mt-1 text-end">{{ form.transport_cost.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.proxy_cost.label }}</label>
+                        {{ form.proxy_cost|add_class:"form-control modern-input" }}
+                        {% if form.proxy_cost.errors %}
+                            <div class="text-danger mt-1 text-end">{{ form.proxy_cost.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- استایل‌های سفارشی -->
-    <style>
-        .modern-card {
-            border: none;
-            border-radius: 15px;
-            background: #ffffff;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .modern-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        .modern-input {
-            border-radius: 10px;
-            border: 1px solid #6c757d;
-            padding: 12px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            width: 100%;
-        }
-        .modern-input:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-            outline: none;
-        }
-        .small-input {
-            width: 150px; /* کادر کوتاه‌تر برای قیمت روز */
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #6c757d;
-        }
-        .modern-btn {
-            padding: 10px 25px;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .modern-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        .text-primary {
-            color: #007bff !important;
-        }
-        .alert {
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        .info-section {
-            background: #f8f9fa;
-            border: 1px solid #6c757d;
-            border-radius: 10px;
-        }
-    </style>
+        <!-- دکمه‌ها -->
+        <div class="d-flex justify-content-center gap-3 mt-5">
+            <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره</button>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
+        </div>
+    </form>
 
-    <!-- انیمیشن‌ها -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- بقیه کد (استایل‌ها و انیمیشن‌ها) همونه -->
 
-    <!-- اسکریپت‌ها -->
+    <!-- اسکریپت جدید -->
     <script>
-        (function () {
-            'use strict';
-            window.addEventListener('load', function () {
-                var forms = document.getElementsByClassName('needs-validation');
-                Array.prototype.filter.call(forms, function (form) {
-                    form.addEventListener('submit', function (event) {
-                        if (form.checkValidity() === false) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-                        form.classList.add('was-validated');
-                    }, false);
-                });
-            }, false);
-        })();
+        document.addEventListener('DOMContentLoaded', function () {
+            // تابع گرفتن عکس و فشرده‌سازی
+            window.captureImage = function (inputId, previewId) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+
+                // دسترسی به وب‌کم
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        const video = document.createElement('video');
+                        video.srcObject = stream;
+                        video.play();
+
+                        // نمایش ویدیو موقت
+                        const modal = document.createElement('div');
+                        modal.style.position = 'fixed';
+                        modal.style.top = '0';
+                        modal.style.left = '0';
+                        modal.style.width = '100%';
+                        modal.style.height = '100%';
+                        modal.style.background = 'rgba(0,0,0,0.8)';
+                        modal.style.display = 'flex';
+                        modal.style.justifyContent = 'center';
+                        modal.style.alignItems = 'center';
+                        modal.style.zIndex = '1000';
+
+                        video.style.maxWidth = '90%';
+                        video.style.maxHeight = '90%';
+
+                        const captureBtn = document.createElement('button');
+                        captureBtn.innerText = 'عکس بگیر';
+                        captureBtn.className = 'btn btn-primary mt-3';
+                        captureBtn.onclick = function () {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0);
+
+                            // فشرده‌سازی
+                            canvas.toBlob(function (blob) {
+                                const compressedFile = new File([blob], 'photo.jpg', {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+
+                                console.log('حجم فشرده:', compressedFile.size / 1024, 'KB');
+
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(compressedFile);
+                                input.files = dataTransfer.files;
+
+                                preview.src = URL.createObjectURL(compressedFile);
+                                preview.style.display = 'block';
+
+                                // بستن ویدیو و مدال
+                                stream.getTracks().forEach(track => track.stop());
+                                document.body.removeChild(modal);
+                            }, 'image/jpeg', 0.7); // کیفیت 70%
+                        };
+
+                        modal.appendChild(video);
+                        modal.appendChild(captureBtn);
+                        document.body.appendChild(modal);
+                    })
+                    .catch(err => {
+                        console.error('خطا در دسترسی به دوربین:', err);
+                        alert('نمی‌تونم به دوربین دسترسی پیدا کنم. لطفاً دسترسی رو چک کن یا فایل آپلود کن.');
+                    });
+            };
+
+            // اعتبارسنجی فرم
+            const form = document.getElementById('costForm');
+            form.addEventListener('submit', function (event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
     </script>
 {% endblock %}

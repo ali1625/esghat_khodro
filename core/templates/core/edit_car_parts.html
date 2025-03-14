@@ -17,11 +17,19 @@
                     {% endfor %}
                 {% endif %}
 
+                <!-- اطلاعات خودرو -->
+                <div class="mb-4 info-section p-3 rounded">
+                    <h5 class="fw-bold text-muted mb-3 text-center">اطلاعات خودرو</h5>
+                    <p class="mb-2"><strong>نوع خودرو:</strong> {{ car.car_type }}</p>
+                    <p class="mb-2"><strong>شماره انتظامی:</strong> {{ car.license_plate }}</p>
+                    <p class="mb-0"><strong>نام مالک:</strong> {{ car.owner_name }}</p>
+                </div>
+
                 <!-- فرم -->
                 <form method="post" class="needs-validation" novalidate>
                     {% csrf_token %}
                     <div class="row g-4">
-                        <!-- بقیه فیلدها (به جز موارد خاص) -->
+                        <!-- فیلدهای چک‌باکس و معمولی -->
                         {% for field in form %}
                             {% if field.name not in 'plate_status plate_description gas_cylinder cabin_percentage weight' %}
                                 <div class="col-md-4">
@@ -29,11 +37,15 @@
                                         {% if field.field.widget.input_type == 'checkbox' %}
                                             <label class="toggle-btn-label {% if field.value %}active{% endif %}" for="{{ field.id_for_label }}">
                                                 {{ field.label }}
-                                                {{ field|add_class:"toggle-btn-input"|attr:"required" }}
+                                                {{ field|add_class:"toggle-btn-input" }}
                                             </label>
                                         {% else %}
                                             <label class="form-label fw-bold text-muted me-3 flex-shrink-0">{{ field.label }}</label>
-                                            {{ field|add_class:"form-control modern-input"|attr:"required" }}
+                                            {% if field.field.required %}
+                                                {{ field|add_class:"form-control modern-input"|attr:"required" }}
+                                            {% else %}
+                                                {{ field|add_class:"form-control modern-input" }}
+                                            {% endif %}
                                         {% endif %}
                                     </div>
                                     {% if field.errors %}
@@ -43,13 +55,17 @@
                             {% endif %}
                         {% endfor %}
 
-                        <!-- فیلدهای کپسول، درصد اتاق، وزن -->
+                        <!-- فیلدهای خاص -->
                         {% for field in form %}
                             {% if field.name in 'gas_cylinder cabin_percentage weight' %}
                                 <div class="col-md-4">
                                     <div class="d-flex align-items-center">
                                         <label class="form-label fw-bold text-muted me-3 flex-shrink-0">{{ field.label }}</label>
-                                        {{ field|add_class:"form-control small-input"|attr:"required" }}
+                                        {% if field.field.required %}
+                                            {{ field|add_class:"form-control small-input"|attr:"required" }}
+                                        {% else %}
+                                            {{ field|add_class:"form-control small-input" }}
+                                        {% endif %}
                                     </div>
                                     {% if field.errors %}
                                         <div class="text-danger mt-1 text-end">{{ field.errors }}</div>
@@ -57,21 +73,46 @@
                                 </div>
                             {% endif %}
                         {% endfor %}
-                    <!-- توضیحات پلاک پایین‌تر و توی کادر -->
-                    <div class="mt-4">
-                        <label class="form-label fw-bold text-muted d-block text-end mb-2">توضیحات پلاک</label>
-                        <div class="card p-3 rounded border" style="border-color: #6c757d;">
-                            {{ form.plate_description|add_class:"form-control large-input"|attr:"style:width: 100%;" }}
-                            {% if form.plate_description.errors %}
-                                <div class="text-danger mt-1 text-end">{{ form.plate_description.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
 
-                    <!-- دکمه‌ها -->
-                    <div class="d-flex justify-content-center gap-3 mt-5">
-                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره تغییرات</button>
-                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
+                        <!-- وضعیت پلاک -->
+                        {% for field in form %}
+                            {% if field.name == 'plate_status' %}
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <label class="form-label fw-bold text-muted me-3 flex-shrink-0">{{ field.label }}</label>
+                                        {% if field.field.required %}
+                                            {{ field|add_class:"form-select modern-select small-select"|attr:"required" }}
+                                        {% else %}
+                                            {{ field|add_class:"form-select modern-select small-select" }}
+                                        {% endif %}
+                                    </div>
+                                    {% if field.errors %}
+                                        <div class="text-danger mt-1 text-end">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- توضیحات پلاک -->
+                        <div class="mt-4">
+                            <label class="form-label fw-bold text-muted d-block text-end mb-2">توضیحات پلاک</label>
+                            <div class="card p-3 rounded border" style="border-color: #6c757d;">
+                                {% if form.plate_description.field.required %}
+                                    {{ form.plate_description|add_class:"form-control large-input"|attr:"required"|attr:"style:width: 100%;" }}
+                                {% else %}
+                                    {{ form.plate_description|add_class:"form-control large-input"|attr:"style:width: 100%;" }}
+                                {% endif %}
+                                {% if form.plate_description.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.plate_description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- دکمه‌ها -->
+                        <div class="d-flex justify-content-center gap-3 mt-5">
+                            <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره تغییرات</button>
+                            <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -106,19 +147,19 @@
             width: 100px;
             padding: 8px;
             border-radius: 8px;
-            border: 1px solid #6c757d; /* خاکستری */
+            border: 1px solid #6c757d;
             flex-grow: 0;
         }
         .small-select {
             width: 120px;
             padding: 8px;
             border-radius: 8px;
-            border: 1px solid #6c757d; /* خاکستری */
+            border: 1px solid #6c757d;
             flex-grow: 0;
         }
         .large-input {
             border-radius: 8px;
-            border: 1px solid #6c757d; /* خاکستری */
+            border: 1px solid #6c757d;
             padding: 8px;
         }
         .toggle-btn-label {

@@ -31,6 +31,30 @@
                             <div class="text-danger">{{ form.last_name.errors }}</div>
                         {% endif %}
                     </div>
+                    <div class="mb-3">
+                        {{ form.national_code.label_tag }}
+                        {{ form.national_code }}
+                        {% if form.national_code.errors %}
+                            <div class="text-danger">{{ form.national_code.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.phone_number.label_tag }}
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                            <div class="text-danger">{{ form.phone_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.role.label_tag }}
+                        {{ form.role }}
+                        {% if form.role.help_text %}
+                            <small class="form-text text-muted">{{ form.role.help_text }}</small>
+                        {% endif %}
+                        {% if form.role.errors %}
+                            <div class="text-danger">{{ form.role.errors }}</div>
+                        {% endif %}
+                    </div>
                     <div class="text-center">
                         <button type="submit" class="btn btn-primary modern-btn">ذخیره تغییرات</button>
                         <a href="{% url 'user_management' %}" class="btn btn-secondary modern-btn ms-2">بازگشت</a>

@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
 {% load static widget_tweaks %}
+{% load form_tags %}
 {% block title %}ویرایش خودرو{% endblock %}
 {% block content %}
     <div class="form-container">
@@ -18,7 +19,7 @@
         <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
             <div class="card-body p-4">
                 <h2 class="card-title text-center mb-4 fw-bold text-primary">ویرایش خودرو: {{ car.car_type }}</h2>
-                <form method="post" id="car-edit-form" class="needs-validation" novalidate>
+                <form method="post" id="car-edit-form" class="needs-validation" novalidate enctype="multipart/form-data">
                     {% csrf_token %}
                     <!-- شماره پلاک خودرو -->
                     <div class="row g-4 mb-4">
@@ -77,7 +78,14 @@
                             {% if field.name != 'license_plate' and field.name != 'driver_license_plate' %}
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold text-muted text-end d-block">{{ field.label }}</label>
-                                    {{ field|add_class:"form-control modern-input"|attr:"required" }}
+                                    {{ field|add_class:"form-control modern-input" }}
+                                    {% if field.name in 'front_image rear_image chassis_image engine_image' %}
+                                        {% with file=car|getattribute:field.name %}
+                                            {% if file %}
+                                                <p class="mt-1"><a href="{{ file.url }}" target="_blank" class="text-muted">مشاهده فایل فعلی</a></p>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
                                     {% if field.errors %}
                                         <div class="text-danger mt-1">{{ field.errors }}</div>
                                     {% endif %}
@@ -96,7 +104,7 @@
         </div>
     </div>
 
-    <!-- استایل‌های سفارشی -->
+    <!-- استایل‌ها و اسکریپت‌ها بدون تغییر -->
     <style>
         .modern-card {
             border: none;
@@ -176,10 +184,8 @@
         }
     </style>
 
-    <!-- انیمیشن‌ها -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-    <!-- اسکریپت‌ها -->
     <script>
         $(document).ready(function() {
             $('.persian-date').persianDatepicker({

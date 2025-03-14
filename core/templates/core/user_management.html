@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
 {% block title %}مدیریت کاربران{% endblock %}
+
 {% block content %}
     <div class="form-container">
         <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
@@ -15,11 +16,6 @@
                     {% endfor %}
                 {% endif %}
 
-                <div class="text-center mb-4">
-                    <a href="{% url 'add_user' %}" class="btn btn-success modern-btn">
-                        <i class="bi bi-person-plus me-2"></i>اضافه کردن کاربر جدید
-                    </a>
-                </div>
 
                 <div class="table-responsive">
                     <table class="table table-striped table-hover modern-table">
@@ -28,16 +24,24 @@
                                 <th class="text-end">نام کاربری</th>
                                 <th class="text-end">نام</th>
                                 <th class="text-end">نام خانوادگی</th>
+                                <th class="text-end">نقش</th>
                                 <th class="text-end">وضعیت</th>
                                 <th class="text-end">عملیات</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for user in users %}
+                            {% for user, role_form in users_with_forms %}
                                 <tr>
                                     <td class="text-end">{{ user.username }}</td>
                                     <td class="text-end">{{ user.userprofile.first_name|default:"-" }}</td>
                                     <td class="text-end">{{ user.userprofile.last_name|default:"-" }}</td>
+                                    <td class="text-end">
+                                        {% if role_form %}
+                                            {{ user.userprofile.role|default:"-" }}
+                                        {% else %}
+                                            <span class="text-muted">پروفایل ندارد</span>
+                                        {% endif %}
+                                    </td>
                                     <td class="text-end">
                                         {% if user.is_active %}
                                             <span class="badge bg-success">فعال</span>
@@ -46,11 +50,12 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-end">
+                                        <a href="{% url 'edit_user_profile' user.id %}" class="btn btn-primary btn-sm me-1" title="ویرایش پروفایل">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <!-- دکمه جدید تغییر رمز -->
                                         <a href="{% url 'admin_change_password' user.id %}" class="btn btn-warning btn-sm me-1" title="تغییر رمز">
                                             <i class="bi bi-key"></i>
-                                        </a>
-                                        <a href="{% url 'edit_user_profile' user.id %}" class="btn btn-primary btn-sm me-1" title="ویرایش پروفایل">
-                                            <i class="bi bi-person"></i>
                                         </a>
                                         <form method="post" style="display:inline;" onsubmit="return confirm('آیا مطمئن هستید که می‌خواهید این کاربر را غیرفعال/فعال کنید؟');">
                                             {% csrf_token %}
@@ -72,56 +77,28 @@
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="5" class="text-center">کاربری یافت نشد</td>
+                                    <td colspan="6" class="text-center">کاربری یافت نشد</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+                   <a href="{% url 'add_user' %}" class="badge bg-success">
+
+                        <i class="bi bi-person-fill-add"></i>
+                         <p >اضافه کردن کاربر جدید</p>
+
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- استایل‌ها -->
     <style>
-        .modern-card {
-            border: none;
-            border-radius: 15px;
-            background: #ffffff;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .modern-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        .modern-table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .table-dark {
-            background-color: #343a40;
-        }
-        .table-hover tbody tr:hover {
-            background-color: #f1f3f5;
-        }
-        .btn-sm {
-            padding: 5px 10px;
-            font-size: 0.875rem;
-        }
-        .badge {
-            font-size: 0.9rem;
-        }
-        .modern-btn {
-            padding: 10px 25px;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .modern-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
+        .modern-card { border: none; border-radius: 15px; background: #ffffff; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .modern-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+        .modern-btn { padding: 10px 25px; border-radius: 25px; font-weight: 600; transition: all 0.3s ease; }
+        .modern-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
+        .modern-table th, .modern-table td { vertical-align: middle; }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 {% endblock %}
