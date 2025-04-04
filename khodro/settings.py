@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'mathfilters',
     'widget_tweaks',
     'core.apps.CoreConfig',
+    'django.contrib.postgres',
 
 ]
 
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.CompanyFilterMiddleware',
     'core.middleware.ForcePasswordChangeMiddleware',
 ]
 
@@ -82,8 +84,13 @@ WSGI_APPLICATION = 'khodro.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'esqat1',
+        'USER': 'postgres',
+        'PASSWORD': 'Ali161625',
+        'HOST': 'localhost',
+        'PORT': '5432',
+
     }
 }
 
@@ -147,9 +154,55 @@ from decouple import config
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': config('DB_NAME', default='db.sqlite3'),
-    }
+
+FILE_CHARSET = 'utf-8'
+DEFAULT_CHARSET = 'utf-8'
+
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         '': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#         },
+#     },
+# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'signals.log',  # فایل لاگ توی ریشه پروژه ذخیره می‌شه
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'console': {  # برای تست توی کنسول هم نشون بده
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+
+        },
+    },
+    'loggers': {
+        'signals': {  # یه لاگر اختصاصی برای سیگنال‌ها
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }

@@ -1,10 +1,13 @@
+from django.conf.urls.static import static
 from django.urls import path
 from django.views.generic import RedirectView
 
+from khodro import settings
 from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('company_select/', views.company_select, name='company_select'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path('register/', views.register_user, name='register_user'),
@@ -39,8 +42,21 @@ urlpatterns = [
 
     path('add_document', views.add_document, name='add_document'),
     path('documents/', views.document_list, name='document_list'),
+    path('connect-car-document/', views.connect_car_document, name='connect_car_document'),
+
+    path('complaint/add/<str:acceptance_number>/', views.add_complaint, name='add_complaint'),
+    path('complaints/<str:acceptance_number>/', views.manage_complaints, name='manage_complaints'),
 
     path('edit_document/<int:pk>/', views.edit_document, name='edit_document'),
+
+    path('update-serial-number/<str:acceptance_number>/', views.update_serial_number, name='update_serial_number'),
+    path('inspection/manage/<str:acceptance_number>/', views.manage_first_inspection, name='manage_first_inspection'),
+    path('inspection/manage/<str:acceptance_number>/<int:inspection_id>/', views.manage_first_inspection,
+         name='edit_first_inspection'),
+    path('inspection/list/', views.first_inspection_list, name='first_inspection_list'),
+    #path('add-second-inspection/<str:acceptance_number>/', views.add_second_inspection, name='add_second_inspection'),
+    path('second-inspection-list/', views.second_inspection_list, name='second_inspection_list'),
+    path('signal-logs/', views.view_signal_logs, name='view_signal_logs'),
 
 ]
 

@@ -1,60 +1,547 @@
-<!-- core/templates/core/add_document.html -->
 {% extends 'core/base.html' %}
 {% load static widget_tweaks %}
 {% block title %}ثبت سند جدید{% endblock %}
 {% block content %}
     <div class="form-container">
-        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
-            <div class="card-body p-4">
-                <h2 class="card-title text-center mb-4 fw-bold text-primary">ثبت سند جدید</h2>
-                <form method="post" id="document-form" class="needs-validation" novalidate enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="row g-4">
-                        {% for field in form %}
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted text-end d-block">{{ field.label }}</label>
-                                {{ field|add_class:"form-control modern-input" }}
-                                {% if field.errors %}
-                                    <div class="text-danger mt-1">{{ field.errors }}</div>
+        <h2 class="card-title text-center mb-4 fw-bold text-primary animate__animated animate__fadeIn">ثبت سند جدید</h2>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- نمایش اطلاعات خودرو اگه انتخاب شده -->
+        {% if selected_car %}
+            <div class="alert alert-info text-end">
+                <p>خودرو انتخاب‌شده: {{ selected_car.acceptance_number }} - شماره موتور: {{ selected_car.engine_number }} - شماره شاسی: {{ selected_car.chassis_number }}</p>
+            </div>
+        {% endif %}
+
+        <form method="post" id="document-form" class="needs-validation animate__animated animate__fadeIn" novalidate enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- فیلدهای معمولی -->
+            <div class="row g-4">
+                {% for field in form %}
+                    {% if field.field.widget.input_type != 'file' %}
+                        <div class="col-md-6 {% if field.name == 'is_deceased' %}col-md-12{% endif %}">
+                            <div class="floating-label-group">
+                                {% if field.field.required %}
+                                    {{ field|add_class:"form-control modern-input"|attr:"required" }}
+                                {% else %}
+                                    {{ field|add_class:"form-control modern-input" }}
+                                {% endif %}
+                                <label class="floating-label fw-bold text-muted">{{ field.label }}</label>
+                            </div>
+                            {% if field.errors %}
+                                <div class="text-danger mt-1 text-end">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <!-- بخش اسناد -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h4 class="mb-3 text-muted fw-bold text-center">اسناد</h4>
+                    <div class="row g-3">
+                        <!-- سند خودرو -->
+                        <div class="document-box d-flex align-items-start gap-3">
+                            <div class="flex-grow-1">
+                                <label class="form-label fw-bold text-muted d-block text-end">{{ form.car_document.label }}</label>
+                                {{ form.car_document|add_class:"form-control modern-input"|attr:"accept:image/*" }}
+                                {% if form.car_document.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.car_document.errors }}</div>
                                 {% endif %}
                             </div>
-                        {% endfor %}
-                    </div>
-                    <div class="d-flex justify-content-center gap-3 mt-5">
-                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره</button>
-                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+                            <div class="action-buttons d-flex gap-2">
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_car_document', 'car_document_preview')" title="گرفتن عکس">
+                                        <i class="bi bi-camera"></i>
+                                    </button>
+                                </div>
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_car_document', 'car_document_preview')" title="اسکن">
+                                        <i class="bi bi-scanner"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-box">
+                                {% if form.instance.car_document %}
+                                    <img id="car_document_preview" class="img-preview" src="{{ form.instance.car_document.url }}" alt="پیش‌نمایش">
+                                {% else %}
+                                    <img id="car_document_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                {% endif %}
+                            </div>
+                        </div>
 
-    <style>
-        .modern-card { border: none; border-radius: 15px; background: #ffffff; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .modern-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
-        .modern-input, .modern-select { border-radius: 10px; border: 1px solid #6c757d; padding: 12px; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
-        .modern-input:focus, .modern-select:focus { border-color: #007bff; box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); outline: none; }
-        .modern-btn { padding: 10px 25px; border-radius: 25px; font-weight: 600; transition: all 0.3s ease; }
-        .modern-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
-        .text-primary { color: #007bff !important; }
-    </style>
+                        <!-- کارت خودرو -->
+                        <div class="document-box d-flex align-items-start gap-3">
+                            <div class="flex-grow-1">
+                                <label class="form-label fw-bold text-muted d-block text-end">{{ form.car_card.label }}</label>
+                                {{ form.car_card|add_class:"form-control modern-input"|attr:"accept:image/*" }}
+                                {% if form.car_card.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.car_card.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="action-buttons d-flex gap-2">
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_car_card', 'car_card_preview')" title="گرفتن عکس">
+                                        <i class="bi bi-camera"></i>
+                                    </button>
+                                </div>
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_car_card', 'car_card_preview')" title="اسکن">
+                                        <i class="bi bi-scanner"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-box">
+                                {% if form.instance.car_card %}
+                                    <img id="car_card_preview" class="img-preview" src="{{ form.instance.car_card.url }}" alt="پیش‌نمایش">
+                                {% else %}
+                                    <img id="car_card_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- وکالت‌نامه -->
+                        <div class="document-box d-flex align-items-start gap-3">
+                            <div class="flex-grow-1">
+                                <label class="form-label fw-bold text-muted d-block text-end">{{ form.vekalat.label }}</label>
+                                {{ form.vekalat|add_class:"form-control modern-input"|attr:"accept:image/*" }}
+                                {% if form.vekalat.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.vekalat.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="action-buttons d-flex gap-2">
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_vekalat', 'vekalat_preview')" title="گرفتن عکس">
+                                        <i class="bi bi-camera"></i>
+                                    </button>
+                                </div>
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_vekalat', 'vekalat_preview')" title="اسکن">
+                                        <i class="bi bi-scanner"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-box">
+                                {% if form.instance.vekalat %}
+                                    <img id="vekalat_preview" class="img-preview" src="{{ form.instance.vekalat.url }}" alt="پیش‌نمایش">
+                                {% else %}
+                                    <img id="vekalat_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    <!-- برگه کمپانی -->
+                        <div class="document-box d-flex align-items-start gap-3">
+                            <div class="flex-grow-1">
+                                <label class="form-label fw-bold text-muted d-block text-end">{{ form.company_paper.label }}</label>
+                                {{ form.company_paper|add_class:"form-control modern-input"|attr:"accept:image/*" }}
+                                {% if form.company_paper.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.company_paper.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="action-buttons d-flex gap-2">
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_company_paper', 'company_paper_preview')" title="گرفتن عکس">
+                                        <i class="bi bi-camera"></i>
+                                    </button>
+                                </div>
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_company_paper', 'company_paper_preview')" title="اسکن">
+                                        <i class="bi bi-scanner"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-box">
+                                {% if form.instance.company_paper %}
+                                    <img id="company_paper_preview" class="img-preview" src="{{ form.instance.company_paper.url }}" alt="پیش‌نمایش">
+                                {% else %}
+                                    <img id="company_paper_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                {% endif %}
+                            </div>
+                        </div>
+
+
+                        <!-- مدرک فوتی ۱ -->
+                        <div class="document-box d-flex align-items-start gap-3 deceased-field" style="display: none;">
+                            <div class="flex-grow-1">
+                                <label class="form-label fw-bold text-muted d-block text-end">{{ form.deceased_doc1.label }}</label>
+                                {{ form.deceased_doc1|add_class:"form-control modern-input"|attr:"accept:image/*" }}
+                                {% if form.deceased_doc1.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.deceased_doc1.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="action-buttons d-flex gap-2">
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_deceased_doc1', 'deceased_doc1_preview')" title="گرفتن عکس">
+                                        <i class="bi bi-camera"></i>
+                                    </button>
+                                </div>
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_deceased_doc1', 'deceased_doc1_preview')" title="اسکن">
+                                        <i class="bi bi-scanner"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-box">
+                                {% if form.instance.deceased_doc1 %}
+                                    <img id="deceased_doc1_preview" class="img-preview" src="{{ form.instance.deceased_doc1.url }}" alt="پیش‌نمایش">
+                                {% else %}
+                                    <img id="deceased_doc1_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- مدرک فوتی ۲ -->
+                        <div class="document-box d-flex align-items-start gap-3 deceased-field" style="display: none;">
+                            <div class="flex-grow-1">
+                                <label class="form-label fw-bold text-muted d-block text-end">{{ form.deceased_doc2.label }}</label>
+                                {{ form.deceased_doc2|add_class:"form-control modern-input"|attr:"accept:image/*" }}
+                                {% if form.deceased_doc2.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.deceased_doc2.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="action-buttons d-flex gap-2">
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_deceased_doc2', 'deceased_doc2_preview')" title="گرفتن عکس">
+                                        <i class="bi bi-camera"></i>
+                                    </button>
+                                </div>
+                                <div class="icon-box">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_deceased_doc2', 'deceased_doc2_preview')" title="اسکن">
+                                        <i class="bi bi-scanner"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-box">
+                                {% if form.instance.deceased_doc2 %}
+                                    <img id="deceased_doc2_preview" class="img-preview" src="{{ form.instance.deceased_doc2.url }}" alt="پیش‌نمایش">
+                                {% else %}
+                                    <img id="deceased_doc2_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- دکمه‌ها -->
+            <div class="d-flex justify-content-center gap-3 mt-5">
+                <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره</button>
+                <a href="{{ previous_url }}" class="btn btn-secondary modern-btn px-4 py-2">بازگشت</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<style>
+        .form-container { padding: 20px; }
+        .modern-input {
+            border-radius: 10px;
+            border: 1px solid #6c757d;
+            padding: 18px 12px 6px 12px;
+            width: 100%;
+            background: #f8f9fa;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modern-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+        .modern-btn {
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .text-primary { color: #007bff !important; }
+        .floating-label-group {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .floating-label {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            background: #f8f9fa;
+            padding: 0 5px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+        .modern-input:focus + .floating-label,
+        .modern-input:not(:placeholder-shown) + .floating-label {
+            top: 0;
+            transform: translateY(-100%);
+            font-size: 12px;
+            color: #007bff;
+        }
+        .document-box {
+            border: 2px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .icon-box { padding: 5px; }
+        .action-buttons { flex-shrink: 0; }
+        .preview-box { flex-shrink: 0; }
+        .img-preview { width: 120px; height: auto; border: 1px solid #ccc; padding: 5px; border-radius: 5px; }
+        .deceased-field {
+            display: none !important;
+        }
+        .deceased-field.visible {
+            display: flex !important;
+        }
+
+        /* استایل بهبودیافته برای چک‌باکس is_deceased */
+        .custom-checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef); /* گرادیانت ملایم */
+            border-radius: 10px;
+            border: 1px solid #adb5bd;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .custom-checkbox {
+            width: 28px;
+            height: 28px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #fff;
+            border: 2px solid #6c757d;
+            border-radius: 50%; /* دایره‌ای */
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .custom-checkbox:checked {
+            background-color: #fd7e14; /* نارنجی جذاب */
+            border-color: #fd7e14;
+            transform: scale(1.1); /* کمی بزرگ‌تر شدن */
+        }
+        .custom-checkbox:checked::after {
+            content: '\2713';
+            color: #fff;
+            font-size: 18px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .custom-checkbox:hover {
+            border-color: #fd7e14;
+            box-shadow: 0 0 8px rgba(253, 126, 20, 0.3);
+        }
+        .custom-checkbox:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(253, 126, 20, 0.5);
+        }
+        .custom-checkbox-label {
+            position: static;
+            transform: none;
+            font-size: 16px;
+            color: #343a40;
+            font-weight: 600;
+            background: none;
+            padding: 0;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .custom-checkbox-group:hover {
+            border-color: #fd7e14;
+            box-shadow: 0 4px 10px rgba(253, 126, 20, 0.2);
+        }
+        .custom-checkbox:checked + .custom-checkbox-label {
+            color: #fd7e14; /* رنگ لیبل هم تغییر کنه */
+        }
+    </style>
     <script>
-        $(document).ready(function() {
-            $(".persian-datepicker").persianDatepicker({
-                format: "YYYY/MM/DD",
-                autoClose: true,
-            });
-            var forms = document.querySelectorAll('.needs-validation');
-            Array.prototype.slice.call(forms).forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("صفحه لود شد!");
+
+            // PersianDatepicker
+            try {
+                $('.persian-date').persianDatepicker({
+                    format: 'YYYY/MM/DD',
+                    initialValue: false,
+                    autoClose: true,
+                    calendar: {
+                        persian: {
+                            locale: 'fa',
+                            showHint: true
+                        }
                     }
-                    form.classList.add('was-validated');
-                }, false);
+                });
+                console.log("PersianDatepicker با موفقیت اعمال شد");
+            } catch (e) {
+                console.error("خطا در PersianDatepicker:", e);
+            }
+
+            // مدیریت فیلدهای deceased
+            const isDeceasedCheckbox = document.getElementById('id_is_deceased');
+            const deceasedFields = document.querySelectorAll('.deceased-field');
+
+            if (!isDeceasedCheckbox) {
+                console.error("المان #id_is_deceased پیدا نشد!");
+                return;
+            }
+            console.log("#id_is_deceased پیدا شد!");
+            console.log("تعداد المان‌های deceased-field:", deceasedFields.length);
+
+            // وضعیت اولیه
+            console.log("وضعیت اولیه #id_is_deceased:", isDeceasedCheckbox.checked);
+            if (isDeceasedCheckbox.checked) {
+                console.log("نمایش اولیه فیلدهای deceased-field");
+                deceasedFields.forEach(field => field.classList.add('visible'));
+            } else {
+                console.log("مخفی کردن اولیه فیلدهای deceased-field");
+                deceasedFields.forEach(field => field.classList.remove('visible'));
+            }
+
+            // تغییر وضعیت
+            isDeceasedCheckbox.addEventListener('change', function() {
+                console.log("تغییر وضعیت #id_is_deceased به:", this.checked);
+                if (this.checked) {
+                    console.log("نمایش فیلدهای deceased-field");
+                    deceasedFields.forEach(field => {
+                        field.classList.add('visible');
+                        $(field).slideDown(300); // انیمیشن با jQuery
+                    });
+                } else {
+                    console.log("مخفی کردن فیلدهای deceased-field");
+                    deceasedFields.forEach(field => {
+                        $(field).slideUp(300, function() {
+                            field.classList.remove('visible');
+                        }); // انیمیشن با callback
+                    });
+                }
             });
+
+            // تابع گرفتن عکس با وب‌کم
+            window.captureImage = function(inputId, previewId) {
+                console.log("تابع captureImage فراخوانی شد برای:", inputId);
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        const video = document.createElement('video');
+                        video.srcObject = stream;
+                        video.play();
+
+                        const modal = document.createElement('div');
+                        modal.style.position = 'fixed';
+                        modal.style.top = '0';
+                        modal.style.left = '0';
+                        modal.style.width = '100%';
+                        modal.style.height = '100%';
+                        modal.style.background = 'rgba(0,0,0,0.8)';
+                        modal.style.display = 'flex';
+                        modal.style.justifyContent = 'center';
+                        modal.style.alignItems = 'center';
+                        modal.style.zIndex = '1000';
+
+                        video.style.maxWidth = '90%';
+                        video.style.maxHeight = '90%';
+
+                        const captureBtn = document.createElement('button');
+                        captureBtn.innerText = 'عکس بگیر';
+                        captureBtn.className = 'btn btn-primary mt-3';
+                        captureBtn.onclick = function() {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0);
+
+                            canvas.toBlob(function(blob) {
+                                const compressedFile = new File([blob], 'photo.jpg', {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(compressedFile);
+                                input.files = dataTransfer.files;
+
+                                preview.src = URL.createObjectURL(compressedFile);
+                                preview.style.display = 'block';
+
+                                stream.getTracks().forEach(track => track.stop());
+                                document.body.removeChild(modal);
+                            }, 'image/jpeg', 0.7);
+                        };
+
+                        modal.appendChild(video);
+                        modal.appendChild(captureBtn);
+                        document.body.appendChild(modal);
+                    })
+                    .catch(err => {
+                        console.error('خطا در دسترسی به دوربین:', err);
+                        alert('نمی‌تونم به دوربین دسترسی پیدا کنم. لطفاً دسترسی رو چک کن یا فایل آپلود کن.');
+                    });
+            };
+
+            // تابع اسکن با اسکنر
+            window.scanWithScanner = function(inputId, previewId) {
+                console.log("تابع scanWithScanner فراخوانی شد برای:", inputId);
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+
+                try {
+                    const socket = new WebSocket('ws://localhost:8001');
+                    socket.onopen = () => {
+                        socket.send(JSON.stringify({ action: 'scan' }));
+                    };
+
+                    socket.onmessage = async (event) => {
+                        if (typeof event.data === 'string') {
+                            const response = JSON.parse(event.data);
+                            if (response.error) {
+                                alert('خطا: ' + response.error);
+                                socket.close();
+                                return;
+                            }
+                        } else {
+                            const blob = new Blob([event.data], { type: 'image/jpeg' });
+                            const file = new File([blob], 'scanned_image.jpg', { type: 'image/jpeg' });
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            input.files = dataTransfer.files;
+
+                            preview.src = URL.createObjectURL(file);
+                            preview.style.display = 'block';
+                            socket.close();
+                        }
+                    };
+
+                    socket.onerror = (error) => {
+                        console.error('خطا در WebSocket:', error);
+                        alert('خطا در ارتباط با اسکنر. مطمئن شوید برنامه اسکنر اجرا شده است.');
+                    };
+                } catch (err) {
+                    console.error('خطا در اسکن:', err);
+                    alert('خطا در اسکن. لطفاً دوباره تلاش کنید.');
+                }
+            };
         });
     </script>
 {% endblock %}

@@ -1,45 +1,30 @@
-{% extends 'base.html' %}
-{% load static %}
-
+{% extends 'core/base.html' %} <!-- فرض می‌کنیم یه قالب پایه دارید -->
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center mb-4">اتصال خودرو و سند</h2>
+    <h2 class="text-center">اتصال دستی خودرو و سند</h2>
 
+    <!-- نمایش پیام‌ها -->
     {% if messages %}
         {% for message in messages %}
-            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}" role="alert">
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
                 {{ message }}
             </div>
         {% endfor %}
     {% endif %}
 
-    <form method="post" class="needs-validation" novalidate>
+    <!-- فرم اتصال -->
+    <form method="POST" class="mt-4">
         {% csrf_token %}
-        <div class="mb-3">
-            <label for="engine_number" class="form-label">شماره موتور</label>
+        <div class="form-group">
+            <label for="engine_number">شماره موتور:</label>
             <input type="text" class="form-control" id="engine_number" name="engine_number" required>
-            <div class="invalid-feedback">لطفاً شماره موتور را وارد کنید.</div>
         </div>
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary">اتصال</button>
-            <a href="{% url 'home' %}" class="btn btn-secondary">لغو</a>
+        <div class="form-group">
+            <label for="chassis_number">شماره شاسی:</label>
+            <input type="text" class="form-control" id="chassis_number" name="chassis_number" required>
         </div>
+        <button type="submit" class="btn btn-primary mt-3">اتصال</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary mt-3">بازگشت</a>
     </form>
 </div>
-
-<script>
-    (function () {
-        'use strict';
-        var forms = document.querySelectorAll('.needs-validation');
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    })();
-</script>
 {% endblock %}

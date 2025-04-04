@@ -1,0 +1,353 @@
+{% extends 'core/base.html' %}
+{% load static widget_tweaks %}
+
+{% block title %}{% if inspection %}ویرایش بازدید اول{% else %}ثبت بازدید اول{% endif %}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2 class="card-title text-center mb-4 fw-bold text-primary animate__animated animate__fadeIn">
+        {% if inspection %}ویرایش بازدید اول{% else %}ثبت بازدید اول{% endif %}
+    </h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- نمایش اطلاعات خودرو -->
+    <div class="alert alert-info text-end">
+        <p>خودرو انتخاب‌شده: {{ car.acceptance_number }}</p>
+    </div>
+
+    <form method="post" id="inspectionForm" class="needs-validation animate__animated animate__fadeIn" novalidate enctype="multipart/form-data">
+        {% csrf_token %}
+        <!-- فیلدهای معمولی -->
+        <div class="row g-4">
+            {% for field in form %}
+                {% if field.field.widget.input_type != 'file' %}
+                    <div class="col-md-6 {% if field.name == 'two_wheeler' %}col-md-12{% endif %}">
+                        <div class="floating-label-group">
+                            {% if field.field.required %}
+                                {{ field|add_class:"form-control modern-input"|attr:"required" }}
+                            {% else %}
+                                {{ field|add_class:"form-control modern-input" }}
+                            {% endif %}
+                            <label class="floating-label fw-bold text-muted">{{ field.label }}</label>
+                        </div>
+                        {% if field.errors %}
+                            <div class="text-danger mt-1 text-end">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- بخش فایل‌ها -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <h4 class="mb-3 text-muted fw-bold text-center">فایل‌ها</h4>
+                <div class="row g-3">
+                    <!-- ویدیوی خودرو سنگین -->
+                    <div class="document-box d-flex align-items-start gap-3">
+                        <div class="flex-grow-1">
+                            <label class="form-label fw-bold text-muted d-block text-end">{{ form.heavy_vehicle_video.label }}</label>
+                            {{ form.heavy_vehicle_video|add_class:"form-control modern-input"|attr:"accept:video/*" }}
+                            {% if form.heavy_vehicle_video.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.heavy_vehicle_video.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="action-buttons d-flex gap-2">
+                            <div class="icon-box">
+                                <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_heavy_vehicle_video', 'heavy_vehicle_preview')" title="گرفتن ویدیو">
+                                    <i class="bi bi-camera"></i>
+                                </button>
+                            </div>
+                            <div class="icon-box">
+                                <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_heavy_vehicle_video', 'heavy_vehicle_preview')" title="اسکن">
+                                    <i class="bi bi-scanner"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="preview-box">
+                            {% if form.instance.heavy_vehicle_video %}
+                                <video id="heavy_vehicle_preview" class="img-preview" src="{{ form.instance.heavy_vehicle_video.url }}" controls></video>
+                            {% else %}
+                                <video id="heavy_vehicle_preview" class="img-preview" style="display:none;" controls></video>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- استعلام آگاهی (شرطی) -->
+                    <div class="document-box d-flex align-items-start gap-3" id="agahi_report_field" style="display: {% if form.instance.Diagnosis_type %}block{% else %}none{% endif %};">
+                        <div class="flex-grow-1">
+                            <label class="form-label fw-bold text-muted d-block text-end">{{ form.agahi_report.label }} (اجباری)</label>
+                            {{ form.agahi_report|add_class:"form-control modern-input"|attr:"accept:image/*"|attr:"required" }}
+                            {% if form.agahi_report.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.agahi_report.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="action-buttons d-flex gap-2">
+                            <div class="icon-box">
+                                <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_agahi_report', 'agahi_report_preview')" title="گرفتن عکس">
+                                    <i class="bi bi-camera"></i>
+                                </button>
+                            </div>
+                            <div class="icon-box">
+                                <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_agahi_report', 'agahi_report_preview')" title="اسکن">
+                                    <i class="bi bi-scanner"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="preview-box">
+                            {% if form.instance.agahi_report %}
+                                <img id="agahi_report_preview" class="img-preview" src="{{ form.instance.agahi_report.url }}" alt="پیش‌نمایش">
+                            {% else %}
+                                <img id="agahi_report_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- دکمه‌ها -->
+        <div class="d-flex justify-content-center gap-3 mt-5">
+            <a href="{% url 'home' %}" class="btn btn-secondary modern-btn px-4 py-2">بازگشت</a>
+            <button type="submit" name="save" class="btn btn-primary modern-btn px-4 py-2">{% if inspection %}ویرایش و تأیید{% else %}ثبت{% endif %}</button>
+            <button type="button" class="btn btn-warning modern-btn px-4 py-2" data-bs-toggle="modal" data-bs-target="#exitModal">خروج از چرخه</button>
+            <button type="submit" name="stay_in_list" class="btn btn-info modern-btn px-4 py-2">در لیست بماند</button>
+        </div>
+    </form>
+
+    <!-- مودال برای خروج از چرخه -->
+    <div class="modal fade" id="exitModal" tabindex="-1" aria-labelledby="exitModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exitModalLabel">علت خروج از چرخه</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" id="comment_exit" name="comment_exit" rows="3" placeholder="علت خروج را بنویسید" {% if inspection.comment_exit %}value="{{ inspection.comment_exit }}"{% endif %}></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                    <button type="button" class="btn btn-danger" onclick="submitExit()">تأیید خروج</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<style>
+    .form-container { padding: 20px; }
+    .modern-input {
+        border-radius: 10px;
+        border: 1px solid #6c757d;
+        padding: 18px 12px 6px 12px;
+        width: 100%;
+        background: #f8f9fa;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .modern-input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        outline: none;
+    }
+    .modern-btn {
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .modern-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    .text-primary { color: #007bff !important; }
+    .floating-label-group {
+        position: relative;
+        margin-bottom: 10px;
+    }
+    .floating-label {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+        background: #f8f9fa;
+        padding: 0 5px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        pointer-events: none;
+    }
+    .modern-input:focus + .floating-label,
+    .modern-input:not(:placeholder-shown) + .floating-label {
+        top: 0;
+        transform: translateY(-100%);
+        font-size: 12px;
+        color: #007bff;
+    }
+    .document-box {
+        border: 2px solid #ddd;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+    .icon-box { padding: 5px; }
+    .action-buttons { flex-shrink: 0; }
+    .preview-box { flex-shrink: 0; }
+    .img-preview { width: 120px; height: auto; border: 1px solid #ccc; padding: 5px; border-radius: 5px; }
+</style>
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // PersianDatepicker
+        $('.persian-date').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            initialValue: false,
+            autoClose: true,
+            calendar: { persian: { locale: 'fa', showHint: true } }
+        });
+
+        // نمایش شرطی agahi_report
+        $('#id_Diagnosis_type').change(function() {
+            if ($(this).val().length > 0) {
+                $('#agahi_report_field').slideDown(300);
+                $('#id_agahi_report').prop('required', true);
+            } else {
+                $('#agahi_report_field').slideUp(300);
+                $('#id_agahi_report').prop('required', false);
+            }
+        });
+
+        // تنظیم اولیه agahi_report
+        if ($('#id_Diagnosis_type').val().length > 0) {
+            $('#agahi_report_field').show();
+            $('#id_agahi_report').prop('required', true);
+        }
+
+        // تابع گرفتن عکس/ویدیو با وب‌کم
+        window.captureImage = function(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const isVideo = input.accept.includes('video');
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
+
+                    const modal = document.createElement('div');
+                    modal.style.position = 'fixed';
+                    modal.style.top = '0';
+                    modal.style.left = '0';
+                    modal.style.width = '100%';
+                    modal.style.height = '100%';
+                    modal.style.background = 'rgba(0,0,0,0.8)';
+                    modal.style.display = 'flex';
+                    modal.style.justifyContent = 'center';
+                    modal.style.alignItems = 'center';
+                    modal.style.zIndex = '1000';
+
+                    video.style.maxWidth = '90%';
+                    video.style.maxHeight = '90%';
+
+                    const captureBtn = document.createElement('button');
+                    captureBtn.innerText = isVideo ? 'ضبط ویدیو' : 'عکس بگیر';
+                    captureBtn.className = 'btn btn-primary mt-3';
+                    captureBtn.onclick = function() {
+                        if (!isVideo) {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0);
+
+                            canvas.toBlob(function(blob) {
+                                const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(file);
+                                input.files = dataTransfer.files;
+
+                                preview.src = URL.createObjectURL(file);
+                                preview.style.display = 'block';
+                            }, 'image/jpeg', 0.7);
+                        } else {
+                            alert('ضبط ویدیو هنوز پیاده‌سازی نشده است.');
+                        }
+                        stream.getTracks().forEach(track => track.stop());
+                        document.body.removeChild(modal);
+                    };
+
+                    modal.appendChild(video);
+                    modal.appendChild(captureBtn);
+                    document.body.appendChild(modal);
+                })
+                .catch(err => {
+                    alert('نمی‌تونم به دوربین دسترسی پیدا کنم: ' + err.message);
+                });
+        };
+
+        // تابع اسکن با اسکنر
+        window.scanWithScanner = function(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const isVideo = input.accept.includes('video');
+
+            try {
+                const socket = new WebSocket('ws://localhost:8001');
+                socket.onopen = () => {
+                    socket.send(JSON.stringify({ action: 'scan' }));
+                };
+
+                socket.onmessage = async (event) => {
+                    if (typeof event.data === 'string') {
+                        const response = JSON.parse(event.data);
+                        if (response.error) {
+                            alert('خطا: ' + response.error);
+                            socket.close();
+                            return;
+                        }
+                    } else {
+                        const blob = new Blob([event.data], { type: isVideo ? 'video/mp4' : 'image/jpeg' });
+                        const file = new File([blob], isVideo ? 'scanned_video.mp4' : 'scanned_image.jpg', { type: isVideo ? 'video/mp4' : 'image/jpeg' });
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        input.files = dataTransfer.files;
+
+                        preview.src = URL.createObjectURL(file);
+                        preview.style.display = 'block';
+                        socket.close();
+                    }
+                };
+
+                socket.onerror = (error) => {
+                    alert('خطا در ارتباط با اسکنر. مطمئن شوید برنامه اسکنر اجرا شده است.');
+                };
+            } catch (err) {
+                alert('خطا در اسکن: ' + err.message);
+            }
+        };
+
+        // ارسال فرم با خروج از چرخه
+        window.submitExit = function() {
+            var comment = $('#comment_exit').val();
+            if (comment.trim() === '') {
+                alert('لطفاً علت خروج را وارد کنید.');
+                return;
+            }
+            $('#inspectionForm').append('<input type="hidden" name="exit" value="true">');
+            $('#inspectionForm').append('<input type="hidden" name="comment_exit" value="' + comment + '">');
+            $('#inspectionForm').submit();
+        };
+    });
+</script>
+{% endblock %}

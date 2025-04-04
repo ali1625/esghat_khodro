@@ -1,0 +1,246 @@
+{% extends 'core/base.html' %}
+{% load static widget_tweaks %}
+{% block title %}
+    {% if mode == 'edit' %}ویرایش شماره سریال{% else %}افزودن شماره سریال{% endif %}
+{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <h2 class="card-title text-center mb-4 fw-bold text-primary">
+            {% if mode == 'edit' %}ویرایش شماره سریال{% else %}افزودن شماره سریال{% endif %} - {{ car.acceptance_number }}
+        </h2>
+
+        <!-- اطلاعات خودرو -->
+        <div class="mb-4 info-section p-3 rounded">
+            <h5 class="fw-bold text-muted mb-3 text-center">اطلاعات خودرو</h5>
+            <p class="mb-2 text-end"><strong>نوع خودرو:</strong> {{ car.car_type|default:"مشخص نشده" }}</p>
+            <p class="mb-2 text-end"><strong>شماره انتظامی:</strong> {{ car.license_plate|default:"مشخص نشده" }}</p>
+            <p class="mb-0 text-end"><strong>نام مالک:</strong> {{ car.owner_name|default:"مشخص نشده" }}</p>
+        </div>
+
+        <!-- پیام‌ها -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- فرم -->
+        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate id="serialForm">
+            {% csrf_token %}
+
+            <!-- فیلد شماره سریال -->
+            <div class="mb-4">
+                <label class="form-label fw-bold text-muted d-block text-end">{{ form.serial_number.label }}</label>
+                {{ form.serial_number|add_class:"form-control modern-input" }}
+                {% if form.serial_number.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.serial_number.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- فیلد فرم ثبت‌نام nnhk با اسکن و پیش‌نمایش -->
+            <div class="mb-4">
+                <h4 class="mb-3 text-muted fw-bold text-center">اسناد</h4>
+                <div class="document-box d-flex align-items-start gap-3">
+                    <div class="flex-grow-1">
+                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.Registration_nnhk.label }}</label>
+                        {{ form.Registration_nnhk|add_class:"form-control modern-input"|attr:"accept:image/*" }}
+                        {% if form.Registration_nnhk.errors %}
+                            <div class="text-danger mt-1 text-end">{{ form.Registration_nnhk.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="action-buttons d-flex gap-2">
+                        <div class="icon-box">
+                            <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_Registration_nnhk', 'nnhk_preview')" title="گرفتن عکس">
+                                <i class="bi bi-camera"></i>
+                            </button>
+                        </div>
+                        <div class="icon-box">
+                            <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_Registration_nnhk', 'nnhk_preview')" title="اسکن">
+                                <i class="bi bi-scanner"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="preview-box">
+                        {% if form.instance.Registration_nnhk %}
+                            <img id="nnhk_preview" class="img-preview" src="{{ form.instance.Registration_nnhk.url }}" alt="پیش‌نمایش">
+                        {% else %}
+                            <img id="nnhk_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- دکمه‌ها -->
+            <div class="d-flex justify-content-center gap-3 mt-5">
+                <button type="submit" class="btn btn-primary modern-btn px-4 py-2">
+                    {% if mode == 'edit' %}ذخیره تغییرات{% else %}ثبت شماره سریال{% endif %}
+                </button>
+                <a href="{{ previous_url }}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- استایل‌ها -->
+    <style>
+        .modern-card { border: none; border-radius: 15px; background: #ffffff; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .modern-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+        .modern-input { border-radius: 10px; border: 1px solid #6c757d; padding: 12px; transition: border-color 0.3s ease, box-shadow 0.3s ease; flex-grow: 1; }
+        .modern-input:focus { border-color: #007bff; box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); outline: none; }
+        .info-section { background: #f8f9fa; border: 1px solid #6c757d; border-radius: 10px; }
+        .modern-btn { padding: 10px 25px; border-radius: 25px; font-weight: 600; transition: all 0.3s ease; }
+        .modern-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
+        .text-primary { color: #007bff !important; }
+        .img-preview { width: 120px; height: auto; border: 1px solid #ccc; padding: 5px; border-radius: 5px; }
+        .document-box { border: 2px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background-color: #f9f9f9; }
+    </style>
+
+    <!-- انیمیشن‌ها -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- اسکریپت‌ها -->
+    <script src="{% static 'js/inputmask.min.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // ماسک برای شماره سریال
+            let input = document.getElementById('id_serial_number');
+            Inputmask({
+                mask: "99999-9999999-9999",
+                placeholder: "_",
+                showMaskOnHover: true,
+                showMaskOnFocus: true,
+                autoUnmask: false
+            }).mask(input);
+
+            // تابع گرفتن عکس با وب‌کم
+            window.captureImage = function (inputId, previewId) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        const video = document.createElement('video');
+                        video.srcObject = stream;
+                        video.play();
+
+                        const modal = document.createElement('div');
+                        modal.style.position = 'fixed';
+                        modal.style.top = '0';
+                        modal.style.left = '0';
+                        modal.style.width = '100%';
+                        modal.style.height = '100%';
+                        modal.style.background = 'rgba(0,0,0,0.8)';
+                        modal.style.display = 'flex';
+                        modal.style.justifyContent = 'center';
+                        modal.style.alignItems = 'center';
+                        modal.style.zIndex = '1000';
+
+                        video.style.maxWidth = '90%';
+                        video.style.maxHeight = '90%';
+
+                        const captureBtn = document.createElement('button');
+                        captureBtn.innerText = 'عکس بگیر';
+                        captureBtn.className = 'btn btn-primary mt-3';
+                        captureBtn.onclick = function () {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0);
+
+                            canvas.toBlob(function (blob) {
+                                const compressedFile = new File([blob], 'photo.jpg', {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(compressedFile);
+                                input.files = dataTransfer.files;
+
+                                preview.src = URL.createObjectURL(compressedFile);
+                                preview.style.display = 'block';
+
+                                stream.getTracks().forEach(track => track.stop());
+                                document.body.removeChild(modal);
+                            }, 'image/jpeg', 0.7);
+                        };
+
+                        modal.appendChild(video);
+                        modal.appendChild(captureBtn);
+                        document.body.appendChild(modal);
+                    })
+                    .catch(err => {
+                        console.error('خطا در دسترسی به دوربین:', err);
+                        alert('نمی‌تونم به دوربین دسترسی پیدا کنم. لطفاً دسترسی رو چک کن یا فایل آپلود کن.');
+                    });
+            };
+
+            // تابع اسکن با اسکنر سخت‌افزاری
+            window.scanWithScanner = async function (inputId, previewId) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+
+                try {
+                    const socket = new WebSocket('ws://localhost:8001');
+                    socket.onopen = () => {
+                        socket.send(JSON.stringify({ action: 'scan' }));
+                    };
+
+                    socket.onmessage = async (event) => {
+                        if (typeof event.data === 'string') {
+                            const response = JSON.parse(event.data);
+                            if (response.error) {
+                                alert('خطا: ' + response.error);
+                                socket.close();
+                                return;
+                            }
+                        } else {
+                            const blob = new Blob([event.data], { type: 'image/jpeg' });
+                            const file = new File([blob], 'scanned_image.jpg', { type: 'image/jpeg' });
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            input.files = dataTransfer.files;
+
+                            preview.src = URL.createObjectURL(file);
+                            preview.style.display = 'block';
+                            socket.close();
+                        }
+                    };
+
+                    socket.onerror = (error) => {
+                        console.error('خطا در WebSocket:', error);
+                        alert('خطا در ارتباط با اسکنر. مطمئن شوید برنامه اسکنر اجرا شده است.');
+                    };
+                } catch (err) {
+                    console.error('خطا در اسکن:', err);
+                    alert('خطا در اسکن. لطفاً دوباره تلاش کنید.');
+                }
+            };
+
+            // پیش‌نمایش تصویر آپلود شده
+            document.querySelectorAll('input[type="file"]').forEach(input => {
+                input.addEventListener('change', function () {
+                    const previewId = this.id.replace('id_', '') + '_preview';
+                    const preview = document.getElementById(previewId);
+                    if (this.files && this.files[0]) {
+                        preview.src = URL.createObjectURL(this.files[0]);
+                        preview.style.display = 'block';
+                    }
+                });
+            });
+
+            // اعتبارسنجی فرم
+            const form = document.getElementById('serialForm');
+            form.addEventListener('submit', function (event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
+    </script>
+{% endblock %}

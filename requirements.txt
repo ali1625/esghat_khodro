@@ -10,3 +10,10 @@ pillow==11.1.0
 python-decouple==3.8
 reportlab==4.3.1
 sqlparse==0.5.3
+arabic-reshaper==3.0.0
+django-extensions==3.2.3
+django-mathfilters==1.0.0
+django-widget-tweaks==1.5.0
+psycopg2==2.9.10
+python-bidi==0.6.6
+tzdata==2025.1

@@ -1,0 +1,13 @@
+{% extends 'core/base.html' %}
+{% block title %}ثبت بازدید دوم{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2 class="text-center mb-4 fw-bold text-primary">ثبت بازدید دوم برای خودرو {{ car.acceptance_number }}</h2>
+    <form method="post" enctype="multipart/form-data" class="form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">ثبت</button>
+        <a href="{% url 'car_details' car.acceptance_number %}" class="btn btn-secondary">بازگشت</a>
+    </form>
+</div>
+{% endblock %}

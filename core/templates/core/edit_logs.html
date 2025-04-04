@@ -1,4 +1,6 @@
 {% extends 'core/base.html' %}
+{% load static %}
+
 {% block title %}
     {% if car %}لاگ‌های ویرایش - {{ car.acceptance_number }}{% else %}همه لاگ‌های ویرایش{% endif %}
 {% endblock %}
@@ -29,6 +31,8 @@
                     <th>نوع ویرایش</th>
                     <th>شماره پذیرش خودرو</th>
                     <th>ویرایش‌کننده</th>
+                    {% if request.user.is_superuser %}<th>شرکت</th>{% endif %}
+                    <th>تغییرات</th>
                     <th>تاریخ ویرایش</th>
                 </tr>
             </thead>
@@ -40,11 +44,13 @@
                             <a href="{% url 'car_details' log.car_entry.acceptance_number %}">{{ log.car_entry.acceptance_number }}</a>
                         </td>
                         <td>{{ log.edited_by.userprofile.first_name }} {{ log.edited_by.userprofile.last_name }}</td>
+                        {% if request.user.is_superuser %}<td>{{ log.company.name }}</td>{% endif %}
+                        <td>{{ log.get_changes_display }}</td>
                         <td>{{ log.edited_at }}</td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center">هیچ لاگی پیدا نشد.</td>
+                        <td colspan="{% if request.user.is_superuser %}6{% else %}5{% endif %}" class="text-center">هیچ لاگی پیدا نشد.</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -57,12 +63,12 @@
                     {% if logs.has_previous %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ logs.previous_page_number }}{% if form.acceptance_number.value %}&acceptance_number={{ form.acceptance_number.value }}{% endif %}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
+                                <span aria-hidden="true">«</span>
                             </a>
                         </li>
                     {% else %}
                         <li class="page-item disabled">
-                            <span class="page-link">&laquo;</span>
+                            <span class="page-link">«</span>
                         </li>
                     {% endif %}
 
@@ -81,12 +87,12 @@
                     {% if logs.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ logs.next_page_number }}{% if form.acceptance_number.value %}&acceptance_number={{ form.acceptance_number.value }}{% endif %}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
+                                <span aria-hidden="true">»</span>
                             </a>
                         </li>
                     {% else %}
                         <li class="page-item disabled">
-                            <span class="page-link">&raquo;</span>
+                            <span class="page-link">»</span>
                         </li>
                     {% endif %}
                 </ul>

@@ -5,6 +5,7 @@ import sys
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8')
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'khodro.settings')
     try:
@@ -19,4 +20,5 @@ def main():
 
 
 if __name__ == '__main__':
+    sys.stdout.reconfigure(encoding='utf-8')
     main()

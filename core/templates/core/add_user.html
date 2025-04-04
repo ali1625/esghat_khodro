@@ -54,12 +54,18 @@
                             <div class="text-danger">{{ form.phone_number.errors }}</div>
                         {% endif %}
                     </div>
-
                     <div class="mb-3">
                         {{ form.role.label_tag }}
                         {{ form.role }}
                         {% if form.role.errors %}
                             <div class="text-danger">{{ form.role.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.company.label_tag }}
+                        {{ form.company }}
+                        {% if form.company.errors %}
+                            <div class="text-danger">{{ form.company.errors }}</div>
                         {% endif %}
                     </div>
                     <div class="text-center">
@@ -72,25 +78,9 @@
     </div>
 
     <style>
-        .modern-card {
-            border: none;
-            border-radius: 15px;
-            background: #ffffff;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .modern-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        .modern-btn {
-            padding: 10px 25px;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .modern-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
+        .modern-card { border: none; border-radius: 15px; background: #ffffff; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .modern-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+        .modern-btn { padding: 10px 25px; border-radius: 25px; font-weight: 600; transition: all 0.3s ease; }
+        .modern-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
     </style>
 {% endblock %}

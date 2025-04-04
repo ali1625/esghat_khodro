@@ -1,0 +1,20 @@
+{% extends 'core/base.html' %}
+{% block title %}ثبت شکایت{% endblock %}
+{% block content %}
+    <div class="form-container">
+        <h2>ثبت شکایت برای خودرو {{ car.acceptance_number }}</h2>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">ثبت شکایت</button>
+           <a href="{% url 'registration_list' %}{% if search_params %}?{% for key, value in search_params.items %}{{ key }}={{ value }}{% if not forloop.last %}&{% endif %}{% endfor %}{% endif %}" class="btn btn-secondary">
+    برگشت به لیست ثبت‌ها
+</a>
+        </form>
+    </div>
+{% endblock %}

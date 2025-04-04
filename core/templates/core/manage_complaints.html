@@ -1,0 +1,125 @@
+{% extends 'core/base.html' %}
+{% block content %}
+    <h2>مدیریت شکایت‌ها برای خودرو {{ car.acceptance_number }}</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- فرم ثبت شکایت جدید -->
+    <h3>ثبت شکایت جدید</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">ثبت شکایت</button>
+    </form>
+
+<!-- لیست شکایت‌ها -->
+    <h3>شکایت‌های موجود</h3>
+    {% if complaints %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>عنوان</th>
+                    <th>ایجاد شده توسط</th>
+                    <th>تاریخ</th>
+                    <th>وضعیت</th>
+                    <th>سند</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for complaint in complaints %}
+                    <tr>
+                        <td>{{ complaint.title }}</td>
+                        <td>{{ complaint.created_by }}</td>
+                        <td>{{ complaint.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ complaint.is_resolved|yesno:"رفع شده,در انتظار" }}</td>
+                        <td>
+                            {% if complaint.complaint_document %}
+                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#documentModal{{ complaint.id }}">
+                                    مشاهده سند
+                                </button>
+                            {% else %}
+                                بدون سند
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if complaint.description %}
+                                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#descriptionModal{{ complaint.id }}">
+                                    توضیحات
+                                </button>
+                            {% else %}
+                                بدون توضیحات
+                            {% endif %}
+                            {% if not complaint.is_resolved %}
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="complaint_id" value="{{ complaint.id }}">
+                                    <input type="hidden" name="action" value="resolve">
+                                    <button type="submit" class="btn btn-success btn-sm">رفع</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- مودال‌ها برای نمایش سند -->
+        {% for complaint in complaints %}
+            {% if complaint.complaint_document %}
+                <div class="modal fade" id="documentModal{{ complaint.id }}" tabindex="-1" aria-labelledby="documentModalLabel{{ complaint.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg"> <!-- modal-lg برای بزرگ‌تر شدن مودال -->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="documentModalLabel{{ complaint.id }}">سند شکایت: {{ complaint.title }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <img src="{{ complaint.complaint_document.url }}" alt="سند شکایت" class="img-fluid" style="max-height: 500px;">
+                            </div>
+                            <div class="modal-footer">
+                                <a href="{{ complaint.complaint_document.url }}" download class="btn btn-primary">دانلود</a>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        <!-- مودال‌ها برای نمایش توضیحات -->
+        {% for complaint in complaints %}
+            {% if complaint.description %}
+                <div class="modal fade" id="descriptionModal{{ complaint.id }}" tabindex="-1" aria-labelledby="descriptionModalLabel{{ complaint.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="descriptionModalLabel{{ complaint.id }}">توضیحات شکایت: {{ complaint.title }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                {{ complaint.description|linebreaks }}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <p>هیچ شکایتی ثبت نشده است.</p>
+    {% endif %}
+
+    <!-- دکمه برگشت -->
+    <a href="{% url next_url %}{% if search_params and next_url == 'registration_list' %}?{% for key, value in search_params.items %}{{ key }}={{ value }}{% if not forloop.last %}&{% endif %}{% endfor %}{% endif %}" class="btn btn-secondary">
+        برگشت
+    </a>
+{% endblock %}

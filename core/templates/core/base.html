@@ -7,33 +7,31 @@
     {% load static %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/persianDatepicker-default.css' %}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'js/persianDatepicker.js' %}"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="{% static 'js/persianDatepicker.js' %}"></script>
     <style>
         @font-face {
             font-family: 'Vazir';
             src: url('{% static "fonts/Vazirmatn-Light.ttf" %}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
         }
-        body {
-            font-family: 'Vazir', sans-serif;
-            direction: rtl;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            margin: 0;
-            padding: 0;
-        }
+
         html, body {
             overflow-x: hidden;
             max-width: 100%;
         }
 
+
+
         /* هدر */
         .header {
             background: linear-gradient(90deg, #343a40 0%, #495057 100%);
             color: white;
+            width: 100%;
             padding: 15px 25px;
-            position: sticky;
+            position: fixed;
             top: 0;
             z-index: 1000;
             display: flex;
@@ -62,6 +60,7 @@
 
         /* ساختار کلی */
         .container-fluid {
+            margin-top: 50px;
             min-height: 100vh;
             display: flex;
             flex-direction: row;
@@ -126,6 +125,7 @@
             }
             .content {
                 margin-right: 220px;
+                margin-top: 40px;
                 width: calc(100% - 220px);
                 text-align: center;
             }
@@ -134,41 +134,77 @@
             }
         }
 
-        /* موبایل: سایدبار زیر محتوا */
+        /*موبایلا */
         @media (max-width: 991.98px) {
             .container-fluid {
                 flex-direction: column;
             }
             .sidebar {
-                width: 100%;
-                position: relative;
-                border-bottom: 1px solid #dee2e6;
-                order: 2;
+                position: fixed;
+                right: -250px;
+                top: 0;
+                width: 250px;
+                height: 100vh;
+                transition: right 0.3s ease-in-out;
+                z-index: 1050;
+                overflow-y: auto;
             }
+            .sidebar.active {
+                right: 0;
+            }
+
+            .close-sidebar {
+                position: sticky;
+                top: 10px;
+                left: 10px;
+                margin-right: 160px;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+            }
+            .close-sidebar:focus {
+                outline: none;
+            }
+
             .sidebar nav {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 gap: 10px;
             }
-            .sidebar.active {
-                display: block;
-            }
+
             .content {
                 margin-right: 0;
+
+                margin-top: 50px;
                 width: 100%;
                 order: 1;
                 text-align: center;
             }
-            .sidebar-toggle {
-                margin: 15px auto;
-                display: block;
-                border-radius: 25px;
-                padding: 10px 20px;
-                background: #007bff;
-                color: #fff;
-                transition: all 0.3s ease;
+            .hidden {
+
+                visibility: hidden;
+
             }
+        }
+
+            .sidebar-toggle {
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: transparent;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                padding: 5px;
+            }
+
+            .sidebar-toggle:focus {
+                outline: none;
+            }
+
             .sidebar-toggle:hover {
                 background: #0056b3;
                 transform: translateY(-2px);
@@ -189,7 +225,10 @@
 </head>
 <body>
     <div class="header">
-        <div class="fw-bold fs-5">سیستم مدیریت خودرو</div>
+        <button class="btn btn-primary sidebar-toggle d-lg-none" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+        </button>
+        <div class="fw-bold fs-5 hidden">سیستم مدیریت خودرو</div>
         <div class="user-info">
             {% if user.is_authenticated %}
                 <span class="fw-medium">
@@ -203,10 +242,11 @@
         </div>
     </div>
     <div class="container-fluid">
-        <button class="btn btn-primary sidebar-toggle d-lg-none" onclick="toggleSidebar()">
-            <i class="bi bi-list"></i> منو
-        </button>
+
         <div class="sidebar d-lg-block" id="sidebar">
+            <button class="btn close-sidebar d-lg-none" onclick="toggleSidebar()">
+                <i class="bi bi-x-lg"></i>
+            </button>
             <h4 class="text-center mb-4">منو</h4>
             <nav>
                 <a href="{% url 'home' %}" class="nav-link"><i class="bi bi-house me-2"></i> صفحه اصلی</a>
@@ -223,6 +263,8 @@
                 </div>
 
                 <a href="{% url 'registration_list' %}" class="nav-link"><i class="bi bi-list-ul me-2"></i> لیست ثبت</a>
+                <a href="{% url 'first_inspection_list' %}" class="nav-link"><i class="bi bi-eye me-2"></i> لیست بازدید اول</a>
+                <a href="{% url 'second_inspection_list' %}" class="nav-link"><i class="bi bi-eye-fill me-2"></i> لیست بازدید دوم</a>
                 <a href="{% url 'finalized_list' %}" class="nav-link" {% if user.userprofile.role != 'admin' %}style="display: none;"{% endif %}><i class="bi bi-check-circle me-2"></i> لیست نهایی</a>
                 <a href="{% url 'edit_logs' acceptance_number='all' %}" class="nav-link" {% if user.userprofile.role != 'admin' %}style="display: none;"{% endif %}><i class="bi bi-clock-history me-2"></i> لاگ‌های ویرایش</a>
                 <a href="{% url 'user_management' %}" class="nav-link" {% if user.userprofile.role != 'admin' %}style="display: none;"{% endif %}><i class="bi bi-people me-2"></i> مدیریت کاربران</a>
@@ -233,11 +275,20 @@
             {% block content %}{% endblock %}
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="{% static 'js/persianDatepicker.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+
         function toggleSidebar() {
             document.getElementById("sidebar").classList.toggle("active");
         }
+
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("active");
+        }
+
     </script>
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

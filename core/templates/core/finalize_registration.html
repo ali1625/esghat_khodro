@@ -1,45 +1,124 @@
 {% extends 'core/base.html' %}
 {% load static widget_tweaks %}
-{% block title %}ثبت نهایی{% endblock %}
+
+{% block title %}نهایی کردن ثبت - {{ car.acceptance_number }}{% endblock %}
+
 {% block content %}
-    <div class="form-container">
-        <div class="card modern-card shadow-lg animate__animated animate__fadeIn">
-            <div class="card-body p-4">
-                <h2 class="card-title text-center mb-4 fw-bold text-primary">ثبت نهایی خودرو {{ car.acceptance_number }}</h2>
+<div class="form-container">
+    <h2 class="text-center mb-4 fw-bold text-primary">نهایی کردن ثبت - {{ car.acceptance_number }}</h2>
 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} text-center">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- اطلاعات خودرو -->
+    <div class="alert alert-info text-end mb-4">
+        <p>خودرو انتخاب‌شده: {{ car.acceptance_number }}</p>
+    </div>
+
+    <div class="alert alert-warning text-end mb-4">
+        <p>آدرس بازگشت: {{ next_url }}</p>
+    </div>
+
+    <!-- دکمه بازگشت -->
+    <div class="mb-4">
+        <a href="{{ next_url }}" class="btn btn-secondary modern-btn px-4 py-2">بازگشت</a>
+    </div>
+
+    <!-- فرم ثبت نهایی -->
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+
+        <!-- تاریخ بازدید دوم -->
+        <div class="row mb-4">
+            <div class="col-md-6 mx-auto">
+                <label for="{{ form.second_inspection_date.id_for_label }}" class="form-label fw-bold text-muted">{{ form.second_inspection_date.label }}</label>
+                {{ form.second_inspection_date|add_class:"form-control persian-date" }}
+                {% if form.second_inspection_date.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.second_inspection_date.errors }}</div>
                 {% endif %}
-
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="{{ form.photo.id_for_label }}" class="form-label">عکس</label>
-                        {{ form.photo|add_class:"form-control" }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.tracking_code.id_for_label }}" class="form-label">کد رهگیری</label>
-                        {{ form.tracking_code|add_class:"form-control" }}
-                    </div>
-                    <div class="mb-3 form-check">
-                        {{ form.is_finalized|add_class:"form-check-input" }}
-                        <label for="{{ form.is_finalized.id_for_label }}" class="form-check-label">نهایی شده</label>
-                    </div>
-                    <div class="d-flex justify-content-center gap-3">
-                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">
-                            <i class="bi bi-save me-2"></i>ثبت
-                        </button>
-                        <a href="{% url 'registration_list' %}" class="btn btn-secondary modern-btn px-4 py-2">
-                            <i class="bi bi-arrow-right me-2"></i>بازگشت
-                        </a>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
+
+        <!-- اسکن فرم پلیس راهور -->
+        <div class="row mb-4">
+            <div class="col-md-6 mx-auto">
+                <label for="{{ form.police_form_scan.id_for_label }}" class="form-label fw-bold text-muted">{{ form.police_form_scan.label }}</label>
+                {{ form.police_form_scan|add_class:"form-control" }}
+                {% if form.instance.police_form_scan %}
+                    <img src="{{ form.instance.police_form_scan.url }}" alt="اسکن فرم پلیس" class="mt-2" style="max-width: 100%;">
+                {% endif %}
+                {% if form.police_form_scan.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.police_form_scan.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- پلاک مجازی -->
+        <div class="row mb-4">
+            <div class="col-md-6 mx-auto">
+                <label for="{{ form.virtual_plate.id_for_label }}" class="form-label fw-bold text-muted">{{ form.virtual_plate.label }}</label>
+                {{ form.virtual_plate|add_class:"form-control" }}
+                {% if form.virtual_plate.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.virtual_plate.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3 mt-5">
+            <button type="submit" class="btn btn-primary px-4 py-2">
+                {% if form.instance.pk %}به‌روزرسانی{% else %}ثبت نهایی{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .btn {
+        border-radius: 25px;
+        padding: 8px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    .text-primary {
+        color: #007bff !important;
+    }
+    .persian-date {
+        direction: ltr;
+    }
+</style>
+
+<!-- اسکریپت و استایل Persian Datepicker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+<script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('.persian-date').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            initialValue: false,
+            autoClose: true,
+            calendar: {
+                persian: {
+                    locale: 'fa',
+                    showHint: true
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

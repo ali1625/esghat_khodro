@@ -23,88 +23,279 @@
                     {% csrf_token %}
                     <!-- شماره پلاک خودرو -->
                     <div class="row g-4 mb-4">
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-12">
                             <label class="form-label fw-bold text-muted text-end d-block">شماره انتظامی</label>
-                            <div class="iranian-license-plate d-flex align-items-center" dir="ltr">
-                                <div class="flag ms-2"></div>
-                                <input type="text" name="digits1" class="form-control modern-input no-spinner uniform-size ms-2" maxlength="2" pattern="\d{2}" value="{{ form.initial.digits1|default_if_none:'' }}" placeholder="41" required>
-                                <span class="separator mx-1">-</span>
-                                <select name="persian_letter" class="form-select modern-select uniform-size ms-2" required>
+                            <div class="iranian-license-plate d-flex flex-wrap align-items-center justify-content-end gap-2" dir="rtl">
+                                <div class="digits3-container position-relative">
+                                    <span class="iran-label position-absolute">ایران</span>
+                                    <input type="text" name="digits3" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" value="{{ form.initial.digits3|default_if_none:'' }}" placeholder="53" required>
+                                </div>
+                                <span class="separator">-</span>
+                                <input type="text" name="digits2" class="form-control modern-input no-spinner uniform-size" maxlength="3" pattern="\d{3}" value="{{ form.initial.digits2|default_if_none:'' }}" placeholder="969" required>
+                                <span class="separator">-</span>
+                                <select name="persian_letter" class="form-select modern-select uniform-size" required>
                                     <option value="" disabled>-- انتخاب کنید --</option>
                                     {% for char in "الف ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی" %}
                                         <option value="{{ char }}" {% if char == form.initial.persian_letter %}selected{% endif %}>{{ char }}</option>
                                     {% endfor %}
                                 </select>
-                                <span class="separator mx-1">-</span>
-                                <input type="text" name="digits2" class="form-control modern-input no-spinner uniform-size ms-2" maxlength="3" pattern="\d{3}" value="{{ form.initial.digits2|default_if_none:'' }}" placeholder="969" required>
-                                <span class="separator mx-1">-</span>
-                                <div class="digits3-container ms-2 position-relative">
-                                    <span class="iran-label position-absolute">ایران</span>
-                                    <input type="text" name="digits3" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" value="{{ form.initial.digits3|default_if_none:'' }}" placeholder="53" required>
-                                </div>
+                                <span class="separator">-</span>
+                                <input type="text" name="digits1" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" value="{{ form.initial.digits1|default_if_none:'' }}" placeholder="41" required>
+                                <div class="flag"></div>
                                 <input type="hidden" name="license_plate" class="license-plate-hidden" value="{{ car.license_plate }}">
                             </div>
                             <div class="invalid-feedback d-block mt-1">لطفاً پلاک خودرو را کامل وارد کنید</div>
+                            {% if form.license_plate.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.license_plate.errors }}</div>
+                            {% endif %}
                         </div>
                         <!-- شماره پلاک راننده -->
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-12">
                             <label class="form-label fw-bold text-muted text-end d-block">شماره پلاک راننده/آورنده</label>
-                            <div class="iranian-license-plate d-flex align-items-center" dir="ltr">
-                                <div class="flag ms-2"></div>
-                                <input type="text" name="driver_digits1" class="form-control modern-input no-spinner uniform-size me-2" maxlength="2" pattern="\d{2}" value="{{ form.initial.driver_digits1|default_if_none:'' }}" placeholder="33" required>
-                                <span class="separator mx-1">-</span>
-                                <select name="driver_persian_letter" class="form-select modern-select uniform-size me-2" required>
+                            <div class="iranian-license-plate d-flex flex-wrap align-items-center justify-content-end gap-2" dir="rtl">
+                                <div class="digits3-container position-relative">
+                                    <span class="iran-label position-absolute">ایران</span>
+                                    <input type="text" name="driver_digits3" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" value="{{ form.initial.driver_digits3|default_if_none:'' }}" placeholder="22" required>
+                                </div>
+                                <span class="separator">-</span>
+                                <input type="text" name="driver_digits2" class="form-control modern-input no-spinner uniform-size" maxlength="3" pattern="\d{3}" value="{{ form.initial.driver_digits2|default_if_none:'' }}" placeholder="787" required>
+                                <span class="separator">-</span>
+                                <select name="driver_persian_letter" class="form-select modern-select uniform-size" required>
                                     <option value="" disabled>-- انتخاب کنید --</option>
                                     {% for char in "الف ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی" %}
                                         <option value="{{ char }}" {% if char == form.initial.driver_persian_letter %}selected{% endif %}>{{ char }}</option>
                                     {% endfor %}
                                 </select>
-                                <span class="separator mx-1">-</span>
-                                <input type="text" name="driver_digits2" class="form-control modern-input no-spinner uniform-size me-2" maxlength="3" pattern="\d{3}" value="{{ form.initial.driver_digits2|default_if_none:'' }}" placeholder="787" required>
-                                <span class="separator mx-1">-</span>
-                                <div class="digits3-container me-2 position-relative">
-                                    <span class="iran-label position-absolute">ایران</span>
-                                    <input type="text" name="driver_digits3" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" value="{{ form.initial.driver_digits3|default_if_none:'' }}" placeholder="22" required>
-                                </div>
+                                <span class="separator">-</span>
+                                <input type="text" name="driver_digits1" class="form-control modern-input no-spinner uniform-size" maxlength="2" pattern="\d{2}" value="{{ form.initial.driver_digits1|default_if_none:'' }}" placeholder="33" required>
+                                <div class="flag"></div>
                                 <input type="hidden" name="driver_license_plate" class="driver-license-plate-hidden" value="{{ car.driver_license_plate }}">
                             </div>
                             <div class="invalid-feedback d-block mt-1">لطفاً پلاک راننده را کامل وارد کنید</div>
+                            {% if form.driver_license_plate.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.driver_license_plate.errors }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
-                    <!-- بقیه فیلدها -->
-                    <div class="row g-4">
-                        {% for field in form %}
-                            {% if field.name != 'license_plate' and field.name != 'driver_license_plate' %}
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold text-muted text-end d-block">{{ field.label }}</label>
-                                    {{ field|add_class:"form-control modern-input" }}
-                                    {% if field.name in 'front_image rear_image chassis_image engine_image' %}
-                                        {% with file=car|getattribute:field.name %}
-                                            {% if file %}
-                                                <p class="mt-1"><a href="{{ file.url }}" target="_blank" class="text-muted">مشاهده فایل فعلی</a></p>
-                                            {% endif %}
-                                        {% endwith %}
-                                    {% endif %}
-                                    {% if field.errors %}
-                                        <div class="text-danger mt-1">{{ field.errors }}</div>
-                                    {% endif %}
-                                </div>
+                    <!-- سایر فیلدها -->
+                    <div class="row g-4 mb-4">
+                        {% if request.user.is_superuser %}
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted text-end d-block">{{ form.company.label }}</label>
+                                {{ form.company|add_class:"form-control modern-input" }}
+                                {% if form.company.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.company.errors }}</div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-end d-block">{{ form.parking_number.label }}</label>
+                            {{ form.parking_number|add_class:"form-control modern-input" }}
+                            {% if form.parking_number.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.parking_number.errors }}</div>
                             {% endif %}
-                        {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-end d-block">{{ form.delivery_date.label }}</label>
+                            {{ form.delivery_date|add_class:"form-control modern-input persian-date" }}
+                            {% if form.delivery_date.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.delivery_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-end d-block">{{ form.car_type.label }}</label>
+                            {{ form.car_type|add_class:"form-control modern-input" }}
+                            {% if form.car_type.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.car_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-end d-block">{{ form.owner_name.label }}</label>
+                            {{ form.owner_name|add_class:"form-control modern-input" }}
+                            {% if form.owner_name.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.owner_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-end d-block">{{ form.engine_number.label }}</label>
+                            {{ form.engine_number|add_class:"form-control modern-input" }}
+                            {% if form.engine_number.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.engine_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-end d-block">{{ form.chassis_number.label }}</label>
+                            {{ form.chassis_number|add_class:"form-control modern-input" }}
+                            {% if form.chassis_number.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.chassis_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-end d-block">{{ form.driver_name.label }}</label>
+                            {{ form.driver_name|add_class:"form-control modern-input" }}
+                            {% if form.driver_name.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.driver_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-end d-block">{{ form.driver_phone.label }}</label>
+                            {{ form.driver_phone|add_class:"form-control modern-input" }}
+                            {% if form.driver_phone.errors %}
+                                <div class="text-danger mt-1 text-end">{{ form.driver_phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.has_cabin_plate|add_class:"form-check-input" }}
+                                <label class="form-check-label fw-bold text-muted text-end d-block" for="id_has_cabin_plate">{{ form.has_cabin_plate.label }}</label>
+                                {% if form.has_cabin_plate.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.has_cabin_plate.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.Physical_readiness|add_class:"form-check-input" }}
+                                <label class="form-check-label fw-bold text-muted text-end d-block" for="id_Physical_readiness">{{ form.Physical_readiness.label }}</label>
+                                {% if form.Physical_readiness.errors %}
+                                    <div class="text-danger mt-1 text-end">{{ form.Physical_readiness.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- بخش تصاویر خودرو -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h4 class="mb-3 text-muted fw-bold text-center">تصاویر خودرو</h4>
+                            <div class="row g-3">
+                                <!-- عکس جلوی خودرو -->
+                                <div class="document-box d-flex align-items-start gap-3">
+                                    <div class="flex-grow-1">
+                                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.front_image.label }}</label>
+                                        {{ form.front_image|add_class:"form-control modern-input" }}
+                                        {% if form.front_image.errors %}
+                                            <div class="text-danger mt-1 text-end">{{ form.front_image.errors }}</div>
+                                        {% endif %}
+                                        {% if car.front_image %}
+                                            <p class="mt-1"><a href="{{ car.front_image.url }}" target="_blank" class="text-muted">مشاهده فایل فعلی</a></p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="action-buttons d-flex gap-2">
+                                        <div class="icon-box">
+                                            <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_front_image', 'front_image_preview')" title="گرفتن عکس">
+                                                <i class="bi bi-camera"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="preview-box">
+                                        {% if car.front_image %}
+                                            <img id="front_image_preview" class="img-preview" src="{{ car.front_image.url }}" alt="پیش‌نمایش">
+                                        {% else %}
+                                            <img id="front_image_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- عکس عقب خودرو -->
+                                <div class="document-box d-flex align-items-start gap-3">
+                                    <div class="flex-grow-1">
+                                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.rear_image.label }}</label>
+                                        {{ form.rear_image|add_class:"form-control modern-input" }}
+                                        {% if form.rear_image.errors %}
+                                            <div class="text-danger mt-1 text-end">{{ form.rear_image.errors }}</div>
+                                        {% endif %}
+                                        {% if car.rear_image %}
+                                            <p class="mt-1"><a href="{{ car.rear_image.url }}" target="_blank" class="text-muted">مشاهده فایل فعلی</a></p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="action-buttons d-flex gap-2">
+                                        <div class="icon-box">
+                                            <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_rear_image', 'rear_image_preview')" title="گرفتن عکس">
+                                                <i class="bi bi-camera"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="preview-box">
+                                        {% if car.rear_image %}
+                                            <img id="rear_image_preview" class="img-preview" src="{{ car.rear_image.url }}" alt="پیش‌نمایش">
+                                        {% else %}
+                                            <img id="rear_image_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- عکس شماره شاسی -->
+                                <div class="document-box d-flex align-items-start gap-3">
+                                    <div class="flex-grow-1">
+                                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.chassis_image.label }}</label>
+                                        {{ form.chassis_image|add_class:"form-control modern-input" }}
+                                        {% if form.chassis_image.errors %}
+                                            <div class="text-danger mt-1 text-end">{{ form.chassis_image.errors }}</div>
+                                        {% endif %}
+                                        {% if car.chassis_image %}
+                                            <p class="mt-1"><a href="{{ car.chassis_image.url }}" target="_blank" class="text-muted">مشاهده فایل فعلی</a></p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="action-buttons d-flex gap-2">
+                                        <div class="icon-box">
+                                            <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_chassis_image', 'chassis_image_preview')" title="گرفتن عکس">
+                                                <i class="bi bi-camera"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="preview-box">
+                                        {% if car.chassis_image %}
+                                            <img id="chassis_image_preview" class="img-preview" src="{{ car.chassis_image.url }}" alt="پیش‌نمایش">
+                                        {% else %}
+                                            <img id="chassis_image_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- عکس شماره موتور -->
+                                <div class="document-box d-flex align-items-start gap-3">
+                                    <div class="flex-grow-1">
+                                        <label class="form-label fw-bold text-muted d-block text-end">{{ form.engine_image.label }}</label>
+                                        {{ form.engine_image|add_class:"form-control modern-input" }}
+                                        {% if form.engine_image.errors %}
+                                            <div class="text-danger mt-1 text-end">{{ form.engine_image.errors }}</div>
+                                        {% endif %}
+                                        {% if car.engine_image %}
+                                            <p class="mt-1"><a href="{{ car.engine_image.url }}" target="_blank" class="text-muted">مشاهده فایل فعلی</a></p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="action-buttons d-flex gap-2">
+                                        <div class="icon-box">
+                                            <button type="button" class="btn btn-outline-primary" onclick="captureImage('id_engine_image', 'engine_image_preview')" title="گرفتن عکس">
+                                                <i class="bi bi-camera"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="preview-box">
+                                        {% if car.engine_image %}
+                                            <img id="engine_image_preview" class="img-preview" src="{{ car.engine_image.url }}" alt="پیش‌نمایش">
+                                        {% else %}
+                                            <img id="engine_image_preview" class="img-preview" style="display:none;" alt="پیش‌نمایش">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- دکمه‌ها -->
                     <div class="d-flex justify-content-center gap-3 mt-5">
                         <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ذخیره تغییرات</button>
-                        <a href="{% url 'registration_list' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
+                        <a href="{% url 'registration_list' %}{% if request.session.search_params %}?{{ request.session.search_params|urlencode }}{% endif %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- استایل‌ها و اسکریپت‌ها بدون تغییر -->
+    <!-- استایل‌های سفارشی -->
     <style>
         .modern-card {
             border: none;
@@ -121,6 +312,8 @@
             border: 1px solid #6c757d;
             padding: 12px;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            text-align: right;
+            direction: rtl;
         }
         .modern-input:focus, .modern-select:focus {
             border-color: #007bff;
@@ -138,9 +331,11 @@
             height: 25px;
             background: url('{% static "images/iran-flag.png" %}') no-repeat center;
             background-size: cover;
+            flex-shrink: 0;
         }
         .digits3-container {
             width: 70px;
+            position: relative;
         }
         .iran-label {
             top: -8px;
@@ -154,6 +349,7 @@
         .separator {
             font-size: 1.2rem;
             color: #6c757d;
+            flex-shrink: 0;
         }
         .no-spinner::-webkit-inner-spin-button, .no-spinner::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -165,6 +361,7 @@
         .uniform-size {
             width: 70px;
             text-align: center;
+            flex-shrink: 0;
         }
         .modern-select.uniform-size {
             width: 90px;
@@ -182,10 +379,45 @@
         .text-primary {
             color: #007bff !important;
         }
+        .img-preview {
+            width: 120px;
+            height: auto;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .document-box {
+            border: 2px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        @media (max-width: 576px) {
+            .iranian-license-plate {
+                flex-direction: column;
+                align-items: end;
+                gap: 5px;
+            }
+            .separator {
+                display: none;
+            }
+            .uniform-size, .modern-select.uniform-size {
+                width: 100%;
+                max-width: 100px;
+            }
+            .flag {
+                margin-top: 5px;
+            }
+        }
     </style>
 
+    <!-- انیمیشن‌ها -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- آیکن‌های Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
+    <!-- اسکریپت‌ها -->
     <script>
         $(document).ready(function() {
             $('.persian-date').persianDatepicker({
@@ -205,14 +437,14 @@
                 var persian_letter = $('select[name="persian_letter"]').val();
                 var digits2 = $('input[name="digits2"]').val();
                 var digits3 = $('input[name="digits3"]').val();
-                var license_plate = digits1 + ' - ' + persian_letter + ' - ' + digits2 + ' - ایران ' + digits3;
+                var license_plate = 'ایران ' + digits3 + ' - ' + digits2 + ' - ' + persian_letter + ' - ' + digits1;
                 $('.license-plate-hidden').val(license_plate);
 
                 var driver_digits1 = $('input[name="driver_digits1"]').val();
                 var driver_persian_letter = $('select[name="driver_persian_letter"]').val();
                 var driver_digits2 = $('input[name="driver_digits2"]').val();
                 var driver_digits3 = $('input[name="driver_digits3"]').val();
-                var driver_license_plate = driver_digits1 + ' - ' + driver_persian_letter + ' - ' + driver_digits2 + ' - ایران ' + driver_digits3;
+                var driver_license_plate = 'ایران ' + driver_digits3 + ' - ' + driver_digits2 + ' - ' + driver_persian_letter + ' - ' + driver_digits1;
                 $('.driver-license-plate-hidden').val(driver_license_plate);
             });
 
@@ -229,6 +461,101 @@
                     }, false);
                 });
             })();
+        });
+
+        // اسکریپت دوربین و پیش‌نمایش
+        document.addEventListener('DOMContentLoaded', function () {
+            // تابع گرفتن عکس با وب‌کم
+            window.captureImage = function (inputId, previewId) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        const video = document.createElement('video');
+                        video.srcObject = stream;
+                        video.play();
+
+                        const modal = document.createElement('div');
+                        modal.style.position = 'fixed';
+                        modal.style.top = '0';
+                        modal.style.left = '0';
+                        modal.style.width = '100%';
+                        modal.style.height = '100%';
+                        modal.style.background = 'rgba(0,0,0,0.8)';
+                        modal.style.display = 'flex';
+                        modal.style.flexDirection = 'column';
+                        modal.style.justifyContent = 'center';
+                        modal.style.alignItems = 'center';
+                        modal.style.zIndex = '1000';
+
+                        video.style.maxWidth = '90%';
+                        video.style.maxHeight = '70%';
+
+                        const buttonContainer = document.createElement('div');
+                        buttonContainer.style.marginTop = '20px';
+                        buttonContainer.style.display = 'flex';
+                        buttonContainer.style.gap = '10px';
+
+                        const captureBtn = document.createElement('button');
+                        captureBtn.innerText = 'عکس بگیر';
+                        captureBtn.className = 'btn btn-primary';
+                        captureBtn.onclick = function () {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0);
+
+                            canvas.toBlob(function (blob) {
+                                const compressedFile = new File([blob], 'photo.jpg', {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(compressedFile);
+                                input.files = dataTransfer.files;
+
+                                preview.src = URL.createObjectURL(compressedFile);
+                                preview.style.display = 'block';
+
+                                stream.getTracks().forEach(track => track.stop());
+                                document.body.removeChild(modal);
+                            }, 'image/jpeg', 0.7);
+                        };
+
+                        const cancelBtn = document.createElement('button');
+                        cancelBtn.innerText = 'بازگشت';
+                        cancelBtn.className = 'btn btn-secondary';
+                        cancelBtn.onclick = function () {
+                            stream.getTracks().forEach(track => track.stop());
+                            document.body.removeChild(modal);
+                        };
+
+                        buttonContainer.appendChild(captureBtn);
+                        buttonContainer.appendChild(cancelBtn);
+                        modal.appendChild(video);
+                        modal.appendChild(buttonContainer);
+                        document.body.appendChild(modal);
+                    })
+                    .catch(err => {
+                        console.error('خطا در دسترسی به دوربین:', err);
+                        alert('نمی‌تونم به دوربین دسترسی پیدا کنم. لطفاً دسترسی رو چک کن یا فایل آپلود کن.');
+                    });
+            };
+
+            // پیش‌نمایش تصویر آپلود شده
+            document.querySelectorAll('input[type="file"]').forEach(input => {
+                input.addEventListener('change', function () {
+                    const previewId = this.id.replace('id_', '') + '_preview';
+                    const preview = document.getElementById(previewId);
+                    if (this.files && this.files[0]) {
+                        preview.src = URL.createObjectURL(this.files[0]);
+                        preview.style.display = 'block';
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}

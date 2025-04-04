@@ -1,102 +1,108 @@
-<!-- core/templates/core/document_list.html -->
 {% extends 'core/base.html' %}
 {% load static widget_tweaks %}
 {% block title %}لیست اسناد{% endblock %}
 {% block content %}
     <div class="container mt-4">
-        <h2 class="text-primary">لیست اسناد</h2>
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+        <h2 class="text-primary mb-4">لیست اسناد</h2>
 
         <!-- فرم جستجو -->
-        <div class="modern-card p-4 mb-4">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <input type="text" name="engine_number" value="{{ engine_number }}" class="modern-input" placeholder="شماره موتور">
+        <form method="get" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <label>از تاریخ</label>
+                    <input type="text" name="date_from" value="{{ date_from }}" class="form-control persian-date" placeholder="1403/12/15">
                 </div>
-                <div class="col-md-3">
-                    <input type="text" name="chassis_number" value="{{ chassis_number }}" class="modern-input" placeholder="شماره شاسی">
+                <div class="col-md-2">
+                    <label>تا تاریخ</label>
+                    <input type="text" name="date_to" value="{{ date_to }}" class="form-control persian-date" placeholder="1403/12/15">
                 </div>
-                <div class="col-md-3">
-                    <input type="text" name="acceptance_number" value="{{ acceptance_number }}" class="modern-input" placeholder="شماره پذیرش">
+                <div class="col-md-2">
+                    <label>شماره موتور</label>
+                    <input type="text" name="engine_number" value="{{ engine_number }}" class="form-control">
                 </div>
-                <div class="col-md-3">
-                    <input type="text" name="date_from" value="{{ date_from }}" class="modern-input persian-datepicker" placeholder="از تاریخ">
+                <div class="col-md-2">
+                    <label>شماره شاسی</label>
+                    <input type="text" name="chassis_number" value="{{ chassis_number }}" class="form-control">
                 </div>
-                <div class="col-md-3">
-                    <input type="text" name="date_to" value="{{ date_to }}" class="modern-input persian-datepicker" placeholder="تا تاریخ">
-                </div>
-                <div class="col-md-3">
-                    <select name="car_status" class="modern-select">
+                <div class="col-md-2">
+                    <label>وضعیت خودرو</label>
+                    <select name="car_status" class="form-control">
                         <option value="">همه</option>
-                        <option value="connected" {% if car_status == 'connected' %}selected{% endif %}>وصل‌شده</option>
-                        <option value="not_connected" {% if car_status == 'not_connected' %}selected{% endif %}>بدون خودرو</option>
+                        <option value="connected" {% if car_status == "connected" %}selected{% endif %}>متصل</option>
+                        <option value="not_connected" {% if car_status == "not_connected" %}selected{% endif %}>غیرمتصل</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary modern-btn w-100">جستجو</button>
+                <div class="col-md-2">
+                    <label>شماره پذیرش</label>
+                    <input type="text" name="acceptance_number" value="{{ acceptance_number }}" class="form-control">
                 </div>
-            </form>
-        </div>
+                <div class="col-md-12 mt-3">
+                    <button type="submit" class="btn btn-primary">جستجو</button>
+                </div>
+            </div>
+        </form>
 
         <!-- جدول اسناد -->
-        <div class="modern-card p-4">
-            <table class="table table-hover modern-table">
-                <thead class="table-dark">
+        <table class="table table-striped table-hover modern-table">
+            <thead class="table-dark">
+                <tr>
+                    <th>شماره موتور</th>
+                    <th>شماره شاسی</th>
+                    <th>تاریخ تحویل</th>
+                    <th>وضعیت خودرو</th>
+                    <th>شماره پذیرش</th>
+                    <th>فوتی</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for document in page_obj %}
                     <tr>
-                        <th>شماره موتور</th>
-                        <th>شماره شاسی</th>
-                        <th>خودرو مرتبط</th>
-                        <th>ایجاد شده توسط</th>
-                        <th>تاریخ ایجاد</th>
-                        <th>عملیات</th>
+                        <td>{{ document.engine_number }}</td>
+                        <td>{{ document.chassis_number }}</td>
+                        <td>{{ document.delivery_date }}</td>
+                        <td>{% if document.car %}متصل{% else %}غیرمتصل{% endif %}</td>
+                        <td>{{ document.car.acceptance_number|default:"-" }}</td>
+                        <td>{% if document.is_deceased %}بله{% else %}خیر{% endif %}</td>
+                        <td>
+                            <a href="{% url 'edit_document' document.pk %}" class="btn btn-sm btn-warning">ویرایش</a>
+                            {% if document.car %}
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#carModal{{ document.pk }}">
+                                    جزئیات
+                                </button>
+                            {% endif %}
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% for document in page_obj %}
-                        <tr>
-                            <td>{{ document.engine_number }}</td>
-                            <td>{{ document.chassis_number }}</td>
-                            <td>{{ document.car.acceptance_number|default:"بدون خودرو" }}</td>
-                            <td>{{ document.created_by.username }}</td>
-                            <td>{{ document.created_at }}</td>
-                            <td>
-                                <a href="{% url 'edit_document' document.pk %}" class="btn btn-primary btn-sm modern-btn">ویرایش</a>
-                                {% if document.car %}
-                                    <button class="btn btn-info btn-sm modern-btn" data-bs-toggle="modal" data-bs-target="#carModal{{ document.pk }}">جزئیات خودرو</button>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center">هیچ سندی یافت نشد.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">سندی یافت نشد.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-            <!-- صفحه‌بندی -->
-            {% if page_obj.has_other_pages %}
-                <div class="pagination mt-3 d-flex justify-content-center gap-2">
-                    {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}&engine_number={{ engine_number }}&chassis_number={{ chassis_number }}&acceptance_number={{ acceptance_number }}&date_from={{ date_from }}&date_to={{ date_to }}&car_status={{ car_status }}" class="btn modern-btn">قبلی</a>
-                    {% endif %}
-                    {% for num in page_obj.paginator.page_range %}
-                        <a href="?page={{ num }}&engine_number={{ engine_number }}&chassis_number={{ chassis_number }}&acceptance_number={{ acceptance_number }}&date_from={{ date_from }}&date_to={{ date_to }}&car_status={{ car_status }}" class="btn modern-btn {% if page_obj.number == num %}active{% endif %}" {% if page_obj.number == num %}style="background-color: #007bff; color: white;"{% endif %}>{{ num }}</a>
-                    {% endfor %}
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}&engine_number={{ engine_number }}&chassis_number={{ chassis_number }}&acceptance_number={{ acceptance_number }}&date_from={{ date_from }}&date_to={{ date_to }}&car_status={{ car_status }}" class="btn modern-btn">بعدی</a>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </div>
-
+        <!-- صفحه‌بندی -->
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    {% with request.GET|cut:"page" as base_params %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if base_params %}&{{ base_params }}{% endif %}">قبلی</a>
+                        </li>
+                    {% endwith %}
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                    {% with request.GET|cut:"page" as base_params %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if base_params %}&{{ base_params }}{% endif %}">بعدی</a>
+                        </li>
+                    {% endwith %}
+                {% endif %}
+            </ul>
+        </nav>
         <!-- مودال‌های جزئیات خودرو -->
         {% for document in page_obj %}
             {% if document.car %}
@@ -127,66 +133,31 @@
     </div>
 
     <style>
-        .modern-card {
-            border: none;
-            border-radius: 15px;
-            background: #ffffff;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .modern-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        .modern-input, .modern-select {
-            border-radius: 10px;
-            border: 1px solid #6c757d;
-            padding: 12px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            width: 100%;
-            background: #f8f9fa;
-        }
-        .modern-input:focus, .modern-select:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-            outline: none;
-        }
-        .modern-btn {
-            padding: 10px 25px;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .modern-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        .text-primary {
-            color: #007bff !important;
-        }
-        .alert {
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        .modern-table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .table-dark {
-            background-color: #343a40;
-        }
-        .table-hover tbody tr:hover {
-            background-color: #f1f3f5;
-        }
-        .btn-sm {
-            padding: 5px 10px;
-            font-size: 0.875rem;
-        }
+        .modern-table { border-radius: 10px; overflow: hidden; }
+        .table-dark { background-color: #343a40; }
+        .btn-sm { padding: 5px 10px; }
+        .modern-card { border: none; border-radius: 15px; background: #ffffff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        .modern-btn { padding: 10px 25px; border-radius: 25px; font-weight: 600; }
+        .text-primary { color: #007bff !important; }
     </style>
+{#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
+{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/persian-datepicker/1.2.0/css/persian-datepicker.min.css" />#}
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/persian-datepicker/1.2.0/js/persian-datepicker.min.js"></script>#}
+{#    <!-- اضافه کردن بوت‌استرپ JS برای مودال -->#}
+{#    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>#}
+{#    #}
     <script>
         $(document).ready(function() {
-            $(".persian-datepicker").persianDatepicker({
-                format: "YYYY/MM/DD",
+            $('.persian-date').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                initialValue: false,
                 autoClose: true,
+                calendar: {
+                    persian: {
+                        locale: 'fa',
+                        showHint: true
+                    }
+                }
             });
         });
     </script>

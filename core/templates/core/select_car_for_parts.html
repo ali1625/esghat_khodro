@@ -33,7 +33,9 @@
 
                     <!-- دکمه‌ها -->
                     <div class="d-flex justify-content-center gap-3">
-                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">ثبت قطعات</button>
+                        <button type="submit" class="btn btn-primary modern-btn px-4 py-2">
+                            ثبت قطعات
+                        </button>
                         <a href="{% url 'home' %}" class="btn btn-outline-secondary modern-btn px-4 py-2">بازگشت</a>
                     </div>
                 </form>
@@ -58,6 +60,7 @@
             border: 1px solid #6c757d;
             padding: 12px;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
         }
         .modern-select:focus {
             border-color: #007bff;
@@ -74,6 +77,9 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
+        .form-label {
+            margin-bottom: 0.25rem;
+        }
         .text-primary {
             color: #007bff !important;
         }
@@ -81,26 +87,41 @@
             border-radius: 10px;
             margin-bottom: 20px;
         }
+        .invalid-feedback {
+            display: none;
+        }
+        .was-validated .form-select:invalid ~ .invalid-feedback {
+            display: block;
+        }
     </style>
 
-    <!-- انیمیشن‌ها -->
+    <!-- انیمیشن‌ها و آیکون‌ها -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- اسکریپت اعتبارسنجی -->
+    <!-- اسکریپت‌ها -->
     <script>
         (function () {
             'use strict';
             window.addEventListener('load', function () {
-                var forms = document.getElementsByClassName('needs-validation');
-                Array.prototype.filter.call(forms, function (form) {
-                    form.addEventListener('submit', function (event) {
-                        if (form.checkValidity() === false) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
+                var form = document.querySelector('.needs-validation');
+                var select = form.querySelector('select[name="selected_car"]');
+                var submitButton = form.querySelector('button[type="submit"]');
+                var baseUrl = "{% url 'add_car_parts_step2' acceptance_number='TEMP' %}".replace('TEMP', '').replace(/\/+$/, '');
+
+                console.log("baseUrl:", baseUrl); // دیباگ
+
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault(); // جلوگیری از POST
+                    if (form.checkValidity() === false) {
                         form.classList.add('was-validated');
-                    }, false);
-                });
+                    } else {
+                        var selectedCar = select.value;
+                        var finalUrl = `${baseUrl}/${selectedCar}/?next=select_car_for_parts`;
+                        console.log("Final URL:", finalUrl); // دیباگ
+                        window.location.href = finalUrl; // ریدایرکت GET
+                    }
+                }, false);
             }, false);
         })();
     </script>

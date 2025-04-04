@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>انتخاب شرکت</title>
+</head>
+<body>
+    <h1>لطفاً شرکت خود را انتخاب کنید</h1>
+    <form method="post">
+        {% csrf_token %}
+        <select name="company_id">
+            {% for company in companies %}
+                <option value="{{ company.id }}">{{ company.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">انتخاب</button>
+    </form>
+</body>
+</html>

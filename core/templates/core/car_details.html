@@ -201,7 +201,7 @@
                                             -
                                         {% endif %}
                                     </p>
-                                    <p><strong>تاریخ ایجاد:</strong> {{ car.document.created_at|date:"Y/m/d H:i"|default:'-' }}</p>
+                                    <p><strong>تاریخ ایجاد:</strong> {{ car.document.created_at|default:'-' }}</p>
                                 </div>
                                 <div class="col-md-4">
                                     <p>
@@ -332,6 +332,7 @@
         .nav-tabs .nav-link.active { background: #007bff; color: #fff; }
         .img-thumbnail { border-radius: 10px; }
         .table { direction: rtl; text-align: right; }
+        .ltr-text {direction: ltr;text-align: left;}
     </style>
 
     <!-- بوت‌استرپ و انیمیشن -->

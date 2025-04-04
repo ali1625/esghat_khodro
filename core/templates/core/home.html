@@ -1,19 +1,20 @@
 {% extends 'core/base.html' %}
 {% load mathfilters %}
+{% load static widget_tweaks %}
 {% block title %}صفحه اصلی{% endblock %}
 {% block content %}
     <div class="home-container">
-        <h2 class="mb-5 text-center fw-bold text-primary animate__animated animate__fadeIn">خوش آمدید، {{ user.userprofile.first_name }} {{ user.userprofile.last_name }}</h2>
+        <h2 class="mb-5 text-center fw-bold text-primary animate__animated animate__fadeIn companyname">مرکز  {{ user.userprofile.company}}</h2>
         {% if messages %}
-    <div class="messages mb-4">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="messages mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
             </div>
-        {% endfor %}
-    </div>
-{% endif %}
+        {% endif %}
         <!-- کارت‌ها -->
         <div class="row justify-content-center mb-5 g-4">
             <div class="col-md-4 col-sm-6 mb-3">
@@ -67,7 +68,13 @@
                                         <td>{{ car.acceptance_number }}</td>
                                         <td>{{ car.car_type }}</td>
                                         <td>{{ car.owner_name }}</td>
-                                        <td>{{ car.accepted_at }}</td>
+                                        <td>
+                                            {% if car.accepted_at %}
+                                                {{ car.accepted_at|date:"Y/m/d" }}
+                                            {% else %}
+                                                نامشخص
+                                            {% endif %}
+                                        </td>
                                         <td>
                                             <a href="{% url 'car_details' car.acceptance_number %}" class="btn btn-info btn-sm modern-btn">
                                                 <i class="bi bi-eye me-1"></i> جزئیات
@@ -92,9 +99,23 @@
 
     <!-- استایل‌های سفارشی -->
     <style>
+        @font-face {
+            font-family: 'IranNastaliq';
+            src: url("{% static 'fonts/IranNastaliq.ttf' %}") format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        h2.companyname {
+            font-family: 'IranNastaliq', sans-serif !important;
+            font-size: 2.5rem; /* اندازه بزرگ‌تر برای خوانایی */
+            line-height: 1.2; /* فاصله خطوط برای فونت دست‌نویس */
+        }
+
         .home-container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 20px;
         }
         .modern-card {
             border: none;

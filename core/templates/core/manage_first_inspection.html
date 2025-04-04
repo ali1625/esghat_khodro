@@ -1,0 +1,421 @@
+{% extends 'core/base.html' %}
+{% load static widget_tweaks %}
+
+{% block title %}{% if inspection %}ویرایش بازدید اول{% else %}مدیریت بازدید اول{% endif %}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2 class="text-center mb-4 fw-bold text-primary">
+        {% if inspection %}ویرایش بازدید اول{% else %}مدیریت بازدید اول{% endif %}
+    </h2>
+
+    <!-- پیام‌ها -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} text-center">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- اطلاعات خودرو -->
+    <div class="alert alert-info text-end mb-4">
+        <p>خودرو انتخاب‌شده: {{ car.acceptance_number }}</p>
+    </div>
+
+    <!-- دکمه بازگشت -->
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <button type="submit" name="back" class="btn btn-secondary modern-btn px-4 py-2">بازگشت</button>
+    </form>
+
+    <!-- فرم اصلی -->
+    <form method="post" id="inspectionForm" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+
+        <!-- تاریخ بازدید -->
+        <div class="row mb-4">
+            <div class="col-md-6 mx-auto">
+                <label for="{{ form.inspection_date.id_for_label }}" class="form-label fw-bold text-muted">تاریخ بازدید اول</label>
+                {{ form.inspection_date|add_class:"form-control" }}
+                {% if form.inspection_date.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.inspection_date.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- نوع آگاهی (Diagnosis_type) -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3 text-center fw-bold text-muted">نوع آگاهی</h4>
+                <div class="row g-3 justify-content-center">
+                    {% for value, label in form.Diagnosis_type.field.choices %}
+                        <div class="col-md-4 col-sm-6">
+                            <input type="checkbox"
+                                   name="Diagnosis_type"
+                                   value="{{ value }}"
+                                   id="diagnosis_{{ value }}"
+                                   class="d-none diagnosis-checkbox"
+                                   {% if value in form.Diagnosis_type.value %}checked{% endif %}>
+                            <label for="diagnosis_{{ value }}"
+                                   class="btn btn-outline-primary w-100 toggle-btn diagnosis {% if value in form.Diagnosis_type.value %}active{% endif %}">
+                                {{ label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if form.Diagnosis_type.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.Diagnosis_type.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- دو رکنی (two_wheeler) -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3 text-center fw-bold text-muted">دو رکنی</h4>
+                <div class="row g-3 justify-content-center">
+                    <div class="col-md-4 col-sm-6">
+                        <input type="checkbox"
+                               name="two_wheeler"
+                               value="True"
+                               id="id_two_wheeler"
+                               class="d-none two-wheeler-checkbox"
+                               {% if form.two_wheeler.value %}checked{% endif %}>
+                        <label for="id_two_wheeler"
+                               class="btn btn-outline-primary w-100 toggle-btn two-wheeler {% if form.two_wheeler.value %}active{% endif %}">
+                            بله
+                        </label>
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <label class="btn btn-outline-primary w-100 toggle-btn two-wheeler {% if form.two_wheeler.value == False %}active{% endif %}"
+                               onclick="$('#id_two_wheeler').prop('checked', false); $('.toggle-btn.two-wheeler').removeClass('active'); $(this).addClass('active');">
+                            خیر
+                        </label>
+                    </div>
+                </div>
+                {% if form.two_wheeler.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.two_wheeler.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- توضیحات دو رکنی -->
+        <div class="row mb-4">
+            <div class="col-md-6 mx-auto">
+                <label for="{{ form.two_wheeler_description.id_for_label }}" class="form-label fw-bold text-muted">توضیحات دو رکنی</label>
+                {{ form.two_wheeler_description|add_class:"form-control" }}
+                {% if form.two_wheeler_description.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.two_wheeler_description.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ویدیو خودرو سنگین -->
+        <div class="row mb-4">
+            <div class="col-md-6 mx-auto">
+                <label for="{{ form.heavy_vehicle_video.id_for_label }}" class="form-label fw-bold text-muted">ویدیو خودرو سنگین</label>
+                {{ form.heavy_vehicle_video|add_class:"form-control" }}
+                {% if form.instance.heavy_vehicle_video %}
+                    <video controls class="mt-2" style="max-width: 100%;">
+                        <source src="{{ form.instance.heavy_vehicle_video.url }}" type="video/mp4">
+                    </video>
+                {% endif %}
+                {% if form.heavy_vehicle_video.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.heavy_vehicle_video.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- استعلام آگاهی -->
+        <div class="row mb-4" id="agahi_report_field" style="display: none;">
+            <div class="col-md-6 mx-auto">
+                <label for="{{ form.agahi_report.id_for_label }}" class="form-label fw-bold text-muted">استعلام آگاهی (اجباری)</label>
+                <div class="input-group">
+                    {{ form.agahi_report|add_class:"form-control"|attr:"required" }}
+                    <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_agahi_report', 'agahi_report_preview')" title="اسکن">
+                        <i class="bi bi-scanner"></i>
+                    </button>
+                </div>
+                {% if form.instance.agahi_report %}
+                    <img id="agahi_report_preview" src="{{ form.instance.agahi_report.url }}" alt="استعلام آگاهی" class="mt-2" style="max-width: 100%;">
+                {% else %}
+                    <img id="agahi_report_preview" alt="پیش‌نمایش" class="mt-2" style="max-width: 100%; display: none;">
+                {% endif %}
+                {% if form.agahi_report.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.agahi_report.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- فرم بازدید -->
+        <div class="row mb-4" id="police_form_scan_field">
+            <div class="col-md-6 mx-auto">
+                <label for="{{ form.police_form_scan.id_for_label }}" class="form-label fw-bold text-muted">فرم بازدید</label>
+                <div class="input-group">
+                    {{ form.police_form_scan|add_class:"form-control" }}
+                    <button type="button" class="btn btn-outline-secondary" onclick="scanWithScanner('id_police_form_scan', 'police_form_scan_preview')" title="اسکن">
+                        <i class="bi bi-scanner"></i>
+                    </button>
+                </div>
+                {% if form.instance.police_form_scan %}
+                    <img id="police_form_scan_preview" src="{{ form.instance.police_form_scan.url }}" alt="فرم بازدید" class="mt-2" style="max-width: 100%;">
+                {% else %}
+                    <img id="police_form_scan_preview" alt="پیش‌نمایش" class="mt-2" style="max-width: 100%; display: none;">
+                {% endif %}
+                {% if form.police_form_scan.errors %}
+                    <div class="text-danger mt-1 text-end">{{ form.police_form_scan.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- دکمه‌ها -->
+        <div class="d-flex justify-content-center gap-3 mt-5">
+            <button type="submit" name="save" class="btn btn-primary px-4 py-2">
+                {% if inspection %}ویرایش و تأیید{% else %}ثبت و تأیید{% endif %}
+            </button>
+            <button type="button" class="btn btn-warning px-4 py-2" data-bs-toggle="modal" data-bs-target="#exitModal">خروج از چرخه</button>
+            <button type="submit" name="stay_in_list" class="btn btn-info px-4 py-2">در لیست بماند</button>
+        </div>
+    </form>
+
+    <!-- لیست بازدیدهای قبلی -->
+    {% if first_inspections %}
+        <div class="mt-5">
+            <h3 class="text-center fw-bold text-muted mb-4">بازدیدهای قبلی</h3>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>تاریخ بازدید</th>
+                            <th>نوع آگاهی</th>
+                            <th>دو رکنی</th>
+                            <th>تأیید</th>
+                            <th>خروج</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inspection in first_inspections %}
+                            <tr>
+                                <td>{{ inspection.inspection_date|default:"-" }}</td>
+                                <td>
+                                    {% if inspection.Diagnosis_type %}
+                                        {{ inspection.Diagnosis_type|join:", " }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ inspection.two_wheeler|yesno:"بله,خیر" }}</td>
+                                <td>{{ inspection.accept|yesno:"بله,خیر" }}</td>
+                                <td>{{ inspection.exit|yesno:"بله,خیر" }}</td>
+                                <td>
+                                    <a href="{% url 'edit_first_inspection' car.acceptance_number inspection.id %}?next={{ next_url|urlencode }}" class="btn btn-sm btn-outline-primary me-1">ویرایش</a>
+                                    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#filesModal_{{ inspection.id }}">فایل‌ها</button>
+                                </td>
+                            </tr>
+
+                            <!-- مودال نمایش فایل‌ها -->
+                            <div class="modal fade" id="filesModal_{{ inspection.id }}" tabindex="-1" aria-labelledby="filesModalLabel_{{ inspection.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="filesModalLabel_{{ inspection.id }}">فایل‌های بازدید - {{ inspection.inspection_date|default:"-" }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            {% if inspection.agahi_report or inspection.heavy_vehicle_video %}
+                                                {% if inspection.agahi_report %}
+                                                    <div class="mb-3">
+                                                        <h6>استعلام آگاهی</h6>
+                                                        <img src="{{ inspection.agahi_report.url }}" alt="استعلام آگاهی" class="img-fluid mb-2" style="max-height: 300px;">
+                                                        <a href="{{ inspection.agahi_report.url }}" class="btn btn-sm btn-success" download>دانلود</a>
+                                                    </div>
+                                                {% endif %}
+                                                {% if inspection.heavy_vehicle_video %}
+                                                    <div class="mb-3">
+                                                        <h6>ویدیو خودرو سنگین</h6>
+                                                        <video controls class="img-fluid mb-2" style="max-height: 300px;">
+                                                            <source src="{{ inspection.heavy_vehicle_video.url }}" type="video/mp4">
+                                                        </video>
+                                                        <a href="{{ inspection.heavy_vehicle_video.url }}" class="btn btn-sm btn-success" download>دانلود</a>
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                <p class="text-muted text-center">هیچ فایلی برای این بازدید ذخیره نشده است.</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- مودال خروج از چرخه -->
+    <div class="modal fade" id="exitModal" tabindex="-1" aria-labelledby="exitModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exitModalLabel">علت خروج از چرخه</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" id="comment_exit" name="comment_exit" rows="3" placeholder="علت خروج را بنویسید"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                    <button type="button" class="btn btn-danger" onclick="submitExit()">تأیید خروج</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+    .form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .toggle-btn {
+        transition: all 0.3s ease;
+    }
+    .toggle-btn.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    .toggle-btn:hover:not(.active) {
+        background-color: #e9ecef;
+    }
+    #agahi_report_field {
+        display: none !important;
+    }
+    #agahi_report_field.visible {
+        display: block !important;
+    }
+    .table-responsive {
+        overflow-x: auto;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('.persian-date').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            initialValue: false,
+            autoClose: true,
+            calendar: { persian: { locale: 'fa', showHint: true } }
+        });
+
+        $('.toggle-btn.diagnosis').off('click');
+        $('.diagnosis-checkbox').each(function() {
+            const checkbox = $(this);
+            const label = checkbox.next('.toggle-btn.diagnosis');
+            if (checkbox.prop('checked')) {
+                label.addClass('active');
+            } else {
+                label.removeClass('active');
+            }
+        });
+
+        $('.toggle-btn.diagnosis').on('click', function(e) {
+            e.preventDefault();
+            const checkbox = $(this).prev('.diagnosis-checkbox');
+            const currentState = checkbox.prop('checked');
+            checkbox.prop('checked', !currentState);
+            $(this).toggleClass('active');
+            updateAgahiReportField();
+        });
+
+        $('.toggle-btn.two-wheeler').off('click');
+        $('.toggle-btn.two-wheeler').on('click', function() {
+            const checkbox = $('#id_two_wheeler');
+            const isYesButton = $(this).text().trim() === 'بله';
+            const isChecked = checkbox.prop('checked');
+
+            if (isYesButton) {
+                checkbox.prop('checked', !isChecked);
+                $('.toggle-btn.two-wheeler').removeClass('active');
+                if (!isChecked) $(this).addClass('active');
+            } else {
+                checkbox.prop('checked', false);
+                $('.toggle-btn.two-wheeler').removeClass('active');
+                $(this).addClass('active');
+            }
+        });
+
+        function updateAgahiReportField() {
+            const checkedCount = $('.diagnosis-checkbox:checked').length;
+            const agahiField = $('#agahi_report_field');
+            if (checkedCount > 0) {
+                agahiField.addClass('visible');
+                $('#id_agahi_report').prop('required', true);
+            } else {
+                agahiField.removeClass('visible');
+                $('#id_agahi_report').prop('required', false);
+            }
+        }
+
+        window.scanWithScanner = function(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+
+            try {
+                const socket = new WebSocket('ws://localhost:8001');
+                socket.onopen = () => {
+                    socket.send(JSON.stringify({ action: 'scan' }));
+                };
+                socket.onmessage = async (event) => {
+                    if (typeof event.data === 'string') {
+                        const response = JSON.parse(event.data);
+                        if (response.error) {
+                            alert('خطا: ' + response.error);
+                            socket.close();
+                            return;
+                        }
+                    } else {
+                        const blob = new Blob([event.data], { type: 'image/jpeg' });
+                        const file = new File([blob], 'scanned_image.jpg', { type: 'image/jpeg' });
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        input.files = dataTransfer.files;
+
+                        preview.src = URL.createObjectURL(file);
+                        preview.style.display = 'block';
+                        socket.close();
+                    }
+                };
+                socket.onerror = (error) => {
+                    alert('خطا در ارتباط با اسکنر. مطمئن شوید برنامه اسکنر اجرا شده است.');
+                };
+            } catch (err) {
+                alert('خطا در اسکن: ' + err.message);
+            }
+        };
+
+        updateAgahiReportField();
+
+        window.submitExit = function() {
+            const comment = $('#comment_exit').val();
+            if (comment.trim() === '') {
+                alert('لطفاً علت خروج را وارد کنید.');
+                return;
+            }
+            $('#inspectionForm').append('<input type="hidden" name="exit" value="true">');
+            $('#inspectionForm').append('<input type="hidden" name="comment_exit" value="' + comment + '">');
+            $('#inspectionForm').submit();
+        };
+    });
+</script>
+{% endblock %}

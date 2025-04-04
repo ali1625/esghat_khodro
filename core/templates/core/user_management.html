@@ -16,7 +16,33 @@
                     {% endfor %}
                 {% endif %}
 
+                <!-- فرم اضافه کردن کاربر -->
+                <h4 class="mb-3 text-end">اضافه کردن کاربر جدید</h4>
+                <form method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        {% for field in add_user_form %}
+                            <div class="col-md-4">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="text-danger">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <button type="submit" name="add_user" class="btn btn-success modern-btn">
+                            <i class="bi bi-person-fill-add me-2"></i>اضافه کردن کاربر
+                        </button>
+                    </div>
+                </form>
 
+                <!-- لیست کاربران -->
+                <h4 class="mb-3 text-end">لیست کاربران</h4>
                 <div class="table-responsive">
                     <table class="table table-striped table-hover modern-table">
                         <thead class="table-dark">
@@ -53,7 +79,6 @@
                                         <a href="{% url 'edit_user_profile' user.id %}" class="btn btn-primary btn-sm me-1" title="ویرایش پروفایل">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <!-- دکمه جدید تغییر رمز -->
                                         <a href="{% url 'admin_change_password' user.id %}" class="btn btn-warning btn-sm me-1" title="تغییر رمز">
                                             <i class="bi bi-key"></i>
                                         </a>
@@ -82,12 +107,6 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                   <a href="{% url 'add_user' %}" class="badge bg-success">
-
-                        <i class="bi bi-person-fill-add"></i>
-                         <p >اضافه کردن کاربر جدید</p>
-
-                    </a>
                 </div>
             </div>
         </div>
@@ -99,6 +118,7 @@
         .modern-btn { padding: 10px 25px; border-radius: 25px; font-weight: 600; transition: all 0.3s ease; }
         .modern-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
         .modern-table th, .modern-table td { vertical-align: middle; }
+        .table-responsive { margin-bottom: 20px; }
     </style>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 {% endblock %}
